@@ -1,65 +1,112 @@
-import Image from "next/image";
+'use client'
 
-export default function Home() {
+import { useRef, useState } from 'react'
+import { QRCodeCanvas as QRCode } from 'qrcode.react'
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || ''
+
+export default function GuestPage() {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [state, setState] = useState<'idle' | 'uploading' | 'done' | 'error'>('idle')
+  const [message, setMessage] = useState('')
+  const [progress, setProgress] = useState(0)
+
+  async function handleFiles(files: FileList) {
+    if (!files.length) return
+    setState('uploading')
+    setProgress(0)
+
+    const form = new FormData()
+    Array.from(files).forEach((f) => form.append('files', f))
+
+    try {
+      const res = await fetch('/api/upload', { method: 'POST', body: form })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      setState('done')
+      setMessage(`${data.count} photo${data.count > 1 ? 's' : ''} envoyée${data.count > 1 ? 's' : ''} !`)
+    } catch (e: unknown) {
+      setState('error')
+      setMessage(e instanceof Error ? e.message : 'Erreur lors de l\'envoi')
+    }
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <main className="min-h-screen flex flex-col items-center justify-center px-6 py-12"
+      style={{ background: 'linear-gradient(135deg, #fdf8f5 0%, #f5ede6 100%)' }}>
+
+      <div className="w-full max-w-md text-center fade-in">
+        <div className="text-5xl mb-4">💍</div>
+        <h1 className="text-3xl font-bold text-stone-800 mb-2">Partagez vos photos</h1>
+        <p className="text-stone-500 text-sm mb-10">
+          Envoyez vos plus beaux souvenirs de la soirée
+        </p>
+
+        {state === 'idle' && (
+          <div
+            className="border-2 border-dashed border-rose-200 rounded-2xl p-10 cursor-pointer hover:border-rose-400 hover:bg-rose-50/50 transition-all"
+            onClick={() => inputRef.current?.click()}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => { e.preventDefault(); handleFiles(e.dataTransfer.files) }}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+            <div className="text-4xl mb-3">📷</div>
+            <p className="text-stone-600 font-medium">Appuyer pour choisir vos photos</p>
+            <p className="text-stone-400 text-xs mt-2">ou glisser-déposer depuis votre galerie</p>
+            <p className="text-stone-300 text-xs mt-1">Max 15 Mo par photo</p>
+            <input
+              ref={inputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={(e) => e.target.files && handleFiles(e.target.files)}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+          </div>
+        )}
+
+        {state === 'uploading' && (
+          <div className="py-12 fade-in">
+            <div className="text-4xl mb-4 pulse-soft">⏳</div>
+            <p className="text-stone-600">Envoi en cours...</p>
+          </div>
+        )}
+
+        {state === 'done' && (
+          <div className="py-10 fade-in">
+            <div className="text-5xl mb-4">🎉</div>
+            <p className="text-stone-700 font-semibold text-lg">{message}</p>
+            <p className="text-stone-400 text-sm mt-2">Les photos seront visibles après validation</p>
+            <button
+              onClick={() => { setState('idle'); setMessage('') }}
+              className="mt-6 px-6 py-2 bg-rose-500 text-white rounded-full text-sm hover:bg-rose-600 transition-colors"
+            >
+              Envoyer d&apos;autres photos
+            </button>
+          </div>
+        )}
+
+        {state === 'error' && (
+          <div className="py-10 fade-in">
+            <div className="text-4xl mb-4">😕</div>
+            <p className="text-red-500 text-sm">{message}</p>
+            <button
+              onClick={() => { setState('idle'); setMessage('') }}
+              className="mt-4 px-6 py-2 bg-stone-700 text-white rounded-full text-sm hover:bg-stone-800 transition-colors"
+            >
+              Réessayer
+            </button>
+          </div>
+        )}
+
+        {APP_URL && (
+          <div className="mt-12 flex flex-col items-center gap-3">
+            <div className="bg-white p-4 rounded-xl shadow-sm">
+              <QRCode value={APP_URL} size={140} />
+            </div>
+            <p className="text-stone-400 text-xs">Scannez pour partager avec vos proches</p>
+          </div>
+        )}
+      </div>
+    </main>
+  )
 }
