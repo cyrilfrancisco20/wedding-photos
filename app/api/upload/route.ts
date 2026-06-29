@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(await file.arrayBuffer())
 
     const { error: storageError } = await admin.storage
-      .from('photos')
+      .from('Photos')
       .upload(filename, buffer, { contentType: file.type })
 
     if (storageError) {
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
       continue
     }
 
-    const { data: urlData } = admin.storage.from('photos').getPublicUrl(filename)
+    const { data: urlData } = admin.storage.from('Photos').getPublicUrl(filename)
 
     const { error: dbError } = await admin
       .from('photos')
