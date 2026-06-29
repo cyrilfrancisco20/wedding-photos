@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
 
   const { data, error } = await admin
     .from('photos')
-    .select('id, filename, status, created_at')
+    .select('id, filename, status, created_at, moderation_reason')
     .eq('status', status)
     .order('created_at', { ascending: false })
 

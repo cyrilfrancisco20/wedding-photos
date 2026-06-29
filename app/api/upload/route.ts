@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { moderatePhoto } from '@/lib/moderate'
+
+export const runtime = 'nodejs'
+export const maxDuration = 60 // la modération vision peut prendre quelques secondes par photo
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif']
 const rateMap = new Map<string, { count: number; reset: number }>()
@@ -16,6 +20,8 @@ function checkRate(ip: string): boolean {
   return true
 }
 
+type Result = { ok: true; filename: string } | { error: string }
+
 export async function POST(req: NextRequest) {
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0] ?? 'unknown'
   if (!checkRate(ip)) {
@@ -29,44 +35,44 @@ export async function POST(req: NextRequest) {
   if (files.length > 10) return NextResponse.json({ error: 'Maximum 10 photos à la fois' }, { status: 400 })
 
   const admin = supabaseAdmin()
-  const results = []
 
-  for (const file of files) {
-    if (file.size > 15 * 1024 * 1024) {
-      results.push({ error: `${file.name} trop volumineux (max 15 Mo)` })
-      continue
-    }
+  const results: Result[] = await Promise.all(
+    files.map(async (file): Promise<Result> => {
+      if (file.size > 15 * 1024 * 1024) {
+        return { error: `${file.name} trop volumineux (max 15 Mo)` }
+      }
+      if (!ALLOWED_TYPES.includes(file.type)) {
+        return { error: `${file.name} : format non accepté (JPEG, PNG, WEBP uniquement)` }
+      }
 
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      results.push({ error: `${file.name} : format non accepté (JPEG, PNG, WEBP uniquement)` })
-      continue
-    }
+      const ext = file.name.split('.').pop()
+      const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+      const buffer = Buffer.from(await file.arrayBuffer())
 
-    const ext = file.name.split('.').pop()
-    const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-    const buffer = Buffer.from(await file.arrayBuffer())
+      const { error: storageError } = await admin.storage
+        .from('Photos')
+        .upload(filename, buffer, { contentType: file.type })
 
-    const { error: storageError } = await admin.storage
-      .from('Photos')
-      .upload(filename, buffer, { contentType: file.type })
+      if (storageError) return { error: storageError.message }
 
-    if (storageError) {
-      results.push({ error: storageError.message })
-      continue
-    }
+      const { data: urlData } = admin.storage.from('Photos').getPublicUrl(filename)
 
-    const { data: urlData } = admin.storage.from('Photos').getPublicUrl(filename)
+      // Modération IA avant publication : décide approved / rejected / pending.
+      const { status, reason } = await moderatePhoto(buffer.toString('base64'), file.type)
 
-    const { error: dbError } = await admin
-      .from('photos')
-      .insert({ filename, url: urlData.publicUrl, status: 'pending' })
+      const { error: dbError } = await admin
+        .from('photos')
+        .insert({ filename, url: urlData.publicUrl, status, moderation_reason: reason })
 
-    if (dbError) results.push({ error: dbError.message })
-    else results.push({ ok: true, filename })
+      if (dbError) return { error: dbError.message }
+      return { ok: true, filename }
+    }),
+  )
+
+  const errors = results.filter((r): r is { error: string } => 'error' in r)
+  if (errors.length === results.length) {
+    return NextResponse.json({ error: errors[0].error }, { status: 500 })
   }
 
-  const errors = results.filter((r) => r.error)
-  if (errors.length === results.length) return NextResponse.json({ error: errors[0].error }, { status: 500 })
-
-  return NextResponse.json({ ok: true, count: results.filter((r) => r.ok).length })
+  return NextResponse.json({ ok: true, count: results.filter((r) => 'ok' in r).length })
 }

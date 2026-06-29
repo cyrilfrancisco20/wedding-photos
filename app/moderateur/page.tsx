@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 
-type Photo = { id: string; url: string; created_at: string }
+type Photo = { id: string; url: string; created_at: string; moderation_reason?: string | null }
 
 export default function ModerateurPage() {
   const [token, setToken] = useState('')
@@ -130,6 +130,11 @@ export default function ModerateurPage() {
                   unoptimized
                 />
               </div>
+              {photo.moderation_reason && (
+                <p className="px-4 pt-3 text-xs text-stone-400">
+                  🤖 {photo.moderation_reason}
+                </p>
+              )}
               <div className="flex gap-3 p-4">
                 <button
                   onClick={() => moderate(photo.id, 'approved')}

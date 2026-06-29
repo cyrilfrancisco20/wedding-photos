@@ -7,6 +7,7 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL || ''
 
 export default function GuestPage() {
   const inputRef = useRef<HTMLInputElement>(null)
+  const cameraRef = useRef<HTMLInputElement>(null)
   const [state, setState] = useState<'idle' | 'uploading' | 'done' | 'error'>('idle')
   const [message, setMessage] = useState('')
   const [progress, setProgress] = useState(0)
@@ -44,15 +45,35 @@ export default function GuestPage() {
 
         {state === 'idle' && (
           <div
-            className="border-2 border-dashed border-rose-200 rounded-2xl p-10 cursor-pointer hover:border-rose-400 hover:bg-rose-50/50 transition-all"
-            onClick={() => inputRef.current?.click()}
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => { e.preventDefault(); handleFiles(e.dataTransfer.files) }}
           >
-            <div className="text-4xl mb-3">📷</div>
-            <p className="text-stone-600 font-medium">Appuyer pour choisir vos photos</p>
-            <p className="text-stone-400 text-xs mt-2">ou glisser-déposer depuis votre galerie</p>
-            <p className="text-stone-300 text-xs mt-1">Max 15 Mo par photo</p>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={() => cameraRef.current?.click()}
+                className="w-full bg-rose-500 text-white rounded-2xl py-4 font-medium hover:bg-rose-600 transition-colors"
+              >
+                📸 Prendre une photo
+              </button>
+              <button
+                onClick={() => inputRef.current?.click()}
+                className="w-full border-2 border-rose-200 text-stone-700 rounded-2xl py-4 font-medium hover:border-rose-400 hover:bg-rose-50/50 transition-colors"
+              >
+                🖼️ Choisir depuis l&apos;album
+              </button>
+            </div>
+            <p className="text-stone-300 text-xs mt-3">Max 15 Mo par photo</p>
+
+            {/* Appareil photo : capture ouvre directement la caméra du téléphone */}
+            <input
+              ref={cameraRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={(e) => e.target.files && handleFiles(e.target.files)}
+            />
+            {/* Album : sélection multiple depuis la galerie */}
             <input
               ref={inputRef}
               type="file"
