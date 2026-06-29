@@ -106,6 +106,10 @@ export default function GuestPage() {
             <p className="text-stone-400 text-xs">Scannez pour partager avec vos proches</p>
           </div>
         )}
+
+        <p className="mt-8 text-stone-300 text-xs text-center max-w-xs mx-auto">
+          Photos partagées uniquement avec les invités du mariage et supprimées sous 30 jours.
+        </p>
       </div>
     </main>
   )
