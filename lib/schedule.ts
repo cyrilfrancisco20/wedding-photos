@@ -59,6 +59,10 @@ export function momentById(id: string): Moment | undefined {
   return BY_ID.get(id as MomentId)
 }
 
+export function isBucket(value: unknown): value is Bucket {
+  return typeof value === 'string' && value in ALL_BUCKET_LABELS
+}
+
 export function dayForBucket(bucket: Bucket): Day | null {
   return BY_ID.get(bucket as MomentId)?.day ?? null
 }

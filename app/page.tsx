@@ -2,22 +2,25 @@
 
 import { useRef, useState } from 'react'
 import { QRCodeCanvas as QRCode } from 'qrcode.react'
+import { MOMENTS, UNSORTED, ALL_BUCKET_LABELS, momentForInstant, type Bucket } from '@/lib/schedule'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || ''
+const MOMENT_OPTIONS: Bucket[] = [...MOMENTS.map((m) => m.id), UNSORTED]
 
 export default function GuestPage() {
   const inputRef = useRef<HTMLInputElement>(null)
   const cameraRef = useRef<HTMLInputElement>(null)
   const [state, setState] = useState<'idle' | 'uploading' | 'done' | 'error'>('idle')
   const [message, setMessage] = useState('')
-  const [progress, setProgress] = useState(0)
+  // Pré-rempli sur le moment de l'instant : un envoi en direct n'a rien à régler.
+  const [moment, setMoment] = useState<Bucket>(() => momentForInstant(new Date())?.id ?? UNSORTED)
 
   async function handleFiles(files: FileList) {
     if (!files.length) return
     setState('uploading')
-    setProgress(0)
 
     const form = new FormData()
+    form.append('moment', moment)
     Array.from(files).forEach((f) => form.append('files', f))
 
     try {
@@ -49,6 +52,18 @@ export default function GuestPage() {
             onDrop={(e) => { e.preventDefault(); handleFiles(e.dataTransfer.files) }}
           >
             <div className="flex flex-col gap-3">
+              <label className="text-left">
+                <span className="block text-stone-500 text-xs mb-1.5">Quel moment ?</span>
+                <select
+                  value={moment}
+                  onChange={(e) => setMoment(e.target.value as Bucket)}
+                  className="w-full border-2 border-rose-200 rounded-2xl py-3 px-4 text-stone-700 bg-white focus:outline-none focus:border-rose-400"
+                >
+                  {MOMENT_OPTIONS.map((m) => (
+                    <option key={m} value={m}>{ALL_BUCKET_LABELS[m]}</option>
+                  ))}
+                </select>
+              </label>
               <button
                 onClick={() => cameraRef.current?.click()}
                 className="w-full bg-rose-500 text-white rounded-2xl py-4 font-medium hover:bg-rose-600 transition-colors"

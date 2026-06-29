@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import exifr from 'exifr'
 import { supabaseAdmin } from '@/lib/supabase'
 import { moderatePhoto } from '@/lib/moderate'
-import { exifDateToParisISO, bucketForTakenAt } from '@/lib/schedule'
+import { exifDateToParisISO, bucketForTakenAt, momentForInstant, isBucket, UNSORTED, type Bucket } from '@/lib/schedule'
 
 // Lit la date de prise de vue dans l'EXIF (DateTimeOriginal, sinon CreateDate).
 // reviveValues:false => on récupère la chaîne brute "YYYY:MM:DD HH:MM:SS" et on
@@ -48,6 +48,11 @@ export async function POST(req: NextRequest) {
   if (!files.length) return NextResponse.json({ error: 'Aucun fichier' }, { status: 400 })
   if (files.length > 10) return NextResponse.json({ error: 'Maximum 10 photos à la fois' }, { status: 400 })
 
+  // Moment choisi par l'invité (iOS strippe la date EXIF, donc l'EXIF ne suffit
+  // pas). Sert quand la photo n'a pas de date. Repli ultime : l'heure d'upload.
+  const picked = form.get('moment')
+  const selectedMoment: Bucket | null = isBucket(picked) ? picked : null
+
   const admin = supabaseAdmin()
 
   const results: Result[] = await Promise.all(
@@ -71,10 +76,12 @@ export async function POST(req: NextRequest) {
 
       const { data: urlData } = admin.storage.from('Photos').getPublicUrl(filename)
 
-      // Date de prise de vue (EXIF) -> dossier du moment. Pas d'EXIF ou hors
-      // créneau => "à classer", jamais un mauvais dossier.
+      // Priorité du moment : date EXIF si présente (la plus fiable), sinon le
+      // moment choisi par l'invité, sinon l'heure d'upload (à classer hors créneau).
       const takenAt = await readTakenAt(buffer)
-      const moment = bucketForTakenAt(takenAt ? new Date(takenAt) : null)
+      const moment = takenAt
+        ? bucketForTakenAt(new Date(takenAt))
+        : selectedMoment ?? momentForInstant(new Date())?.id ?? UNSORTED
 
       // Modération IA avant publication : décide approved / rejected / pending.
       const { status, reason } = await moderatePhoto(buffer.toString('base64'), file.type)
