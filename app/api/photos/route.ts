@@ -5,13 +5,19 @@ const SIGNED_URL_EXPIRY = 8 * 60 * 60 // 8 heures
 
 export async function GET(req: NextRequest) {
   const status = req.nextUrl.searchParams.get('status') || 'approved'
+  const moment = req.nextUrl.searchParams.get('moment')
   const admin = supabaseAdmin()
 
-  const { data, error } = await admin
+  let query = admin
     .from('photos')
-    .select('id, filename, status, created_at, moderation_reason')
+    .select('id, filename, status, created_at, taken_at, moment, moderation_reason')
     .eq('status', status)
-    .order('created_at', { ascending: false })
+  if (moment) query = query.eq('moment', moment)
+
+  // Tri chronologique sur la prise de vue (fallback upload si EXIF absent).
+  const { data, error } = await query
+    .order('taken_at', { ascending: true, nullsFirst: false })
+    .order('created_at', { ascending: true })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   if (!data?.length) return NextResponse.json([])

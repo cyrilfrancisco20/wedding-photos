@@ -119,8 +119,14 @@ export default function GuestPage() {
           </div>
         )}
 
+        <div className="mt-10">
+          <a href="/galerie" className="text-rose-500 text-sm font-medium hover:text-rose-700">
+            Voir la galerie du mariage →
+          </a>
+        </div>
+
         {APP_URL && (
-          <div className="mt-12 flex flex-col items-center gap-3">
+          <div className="mt-10 flex flex-col items-center gap-3">
             <div className="bg-white p-4 rounded-xl shadow-sm">
               <QRCode value={APP_URL} size={140} />
             </div>

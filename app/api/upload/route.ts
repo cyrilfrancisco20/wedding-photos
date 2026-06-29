@@ -1,6 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
+import exifr from 'exifr'
 import { supabaseAdmin } from '@/lib/supabase'
 import { moderatePhoto } from '@/lib/moderate'
+import { exifDateToParisISO, bucketForTakenAt } from '@/lib/schedule'
+
+// Lit la date de prise de vue dans l'EXIF (DateTimeOriginal, sinon CreateDate).
+// reviveValues:false => on récupère la chaîne brute "YYYY:MM:DD HH:MM:SS" et on
+// l'interprète nous-mêmes en heure de Paris, sans dépendre du fuseau du serveur.
+async function readTakenAt(buffer: Buffer): Promise<string | null> {
+  try {
+    const exif = await exifr.parse(buffer, { pick: ['DateTimeOriginal', 'CreateDate'], reviveValues: false })
+    return exifDateToParisISO(exif?.DateTimeOriginal ?? exif?.CreateDate)
+  } catch {
+    return null
+  }
+}
 
 export const runtime = 'nodejs'
 export const maxDuration = 60 // la modération vision peut prendre quelques secondes par photo
@@ -57,12 +71,17 @@ export async function POST(req: NextRequest) {
 
       const { data: urlData } = admin.storage.from('Photos').getPublicUrl(filename)
 
+      // Date de prise de vue (EXIF) -> dossier du moment. Pas d'EXIF ou hors
+      // créneau => "à classer", jamais un mauvais dossier.
+      const takenAt = await readTakenAt(buffer)
+      const moment = bucketForTakenAt(takenAt ? new Date(takenAt) : null)
+
       // Modération IA avant publication : décide approved / rejected / pending.
       const { status, reason } = await moderatePhoto(buffer.toString('base64'), file.type)
 
       const { error: dbError } = await admin
         .from('photos')
-        .insert({ filename, url: urlData.publicUrl, status, moderation_reason: reason })
+        .insert({ filename, url: urlData.publicUrl, status, moderation_reason: reason, taken_at: takenAt, moment })
 
       if (dbError) return { error: dbError.message }
       return { ok: true, filename }
