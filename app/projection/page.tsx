@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, useCallback } from 'react'
 import Image from 'next/image'
-import { momentForInstant, dayForBucket, type Bucket } from '@/lib/schedule'
+import { momentForInstant, momentById, dayForBucket, type Bucket } from '@/lib/schedule'
 
 type Photo = { id: string; url: string; moment: Bucket | null; taken_at: string | null; created_at: string }
 
@@ -19,6 +19,12 @@ export default function ProjectionPage() {
   const [now, setNow] = useState(() => new Date())
   const [index, setIndex] = useState(0)
   const [visible, setVisible] = useState(true)
+  // Forçage manuel via ?moment=aperitif : test avant le jour J et secours si
+  // l'horaire dérape. Ignore alors l'horloge et la veille.
+  const [forced, setForced] = useState<string | null>(null)
+  useEffect(() => {
+    setForced(new URLSearchParams(window.location.search).get('moment'))
+  }, [])
 
   const fetchPhotos = useCallback(async () => {
     const res = await fetch('/api/photos?status=approved')
@@ -33,18 +39,22 @@ export default function ProjectionPage() {
     return () => clearInterval(refresh)
   }, [fetchPhotos])
 
-  const current = momentForInstant(now)
+  // Moment forcé par l'URL en priorité, sinon le moment de l'horloge.
+  const forcedMoment = forced ? momentById(forced) : undefined
+  const current = forcedMoment ?? momentForInstant(now)
+  const isForced = !!forcedMoment
 
   // Photos à projeter : le moment courant d'abord, complété par le reste du jour.
+  // En mode forcé, on ignore la veille (cérémonie) pour pouvoir voir l'écran.
   const playlist = useMemo(() => {
-    if (!current || !current.projects) return []
+    if (!current || (!isForced && !current.projects)) return []
     const day = current.day
     const primary = photos.filter((p) => p.moment === current.id).sort(recentFirst)
     const backfill = photos
       .filter((p) => p.moment !== current.id && dayForBucket(p.moment ?? 'a-classer') === day)
       .sort(recentFirst)
     return [...primary, ...backfill]
-  }, [photos, current])
+  }, [photos, current, isForced])
 
   useEffect(() => {
     if (playlist.length <= 1) return
@@ -59,10 +69,11 @@ export default function ProjectionPage() {
   }, [playlist.length])
 
   // Veille : cérémonie, hors créneaux, ou créneau encore sans photo.
-  if (!current || !current.projects || playlist.length === 0) {
+  // Le mode forcé court-circuite la veille de cérémonie.
+  if (!current || (!isForced && !current.projects) || playlist.length === 0) {
     const message = !current
       ? 'À tout de suite'
-      : !current.projects
+      : !isForced && !current.projects
         ? `${current.label} en cours`
         : `En attente des premières photos · ${current.label}`
     return (
