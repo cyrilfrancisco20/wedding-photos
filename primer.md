@@ -10,6 +10,14 @@ Les 4 retouches demandées, traitées en pur habillage (aucune logique touchée)
 - **Preuves** : `tsc --noEmit` clean ; lint = baseline inchangée (6 err préexistantes set-state-in-effect/img/apostrophe, 0 ajoutée) ; rendu mobile vérifié sur les 4 surfaces (galerie+accueil+modérateur clairs Variante A, projection sombre/or intacte), 0 erreur console.
 - **PROCHAINE ÉTAPE = ton GO PUSH** : `git push origin retouches-design` puis merge dans `main` (ou push direct main) → Vercel auto-déploie. Le QR pointe déjà sur la prod, donc rien à recâbler. Tester avec quelques proches, puis vider la base avant le 11/07.
 
+## CAPACITÉ + STORAGE (30/06/2026) — FAIT sur `retouches-design` (commit 87ca76d), NON poussé
+Suite aux questions de Cyril sur la capacité et le rangement Supabase.
+- **Constat capacité** : plan Free Supabase = ~1 Go storage + ~5 Go bande passante/mois (à confirmer dans Settings→Usage). Le code stockait les photos **brutes** (pas de compression, `sharp` n'était pas installé), 2-5 Mo/photo → **~340 photos max pour TOUT le mariage** (pas par jour), soit ~2,6/convive sur 130. La projection en boucle (refresh 15s) menaçait surtout la bande passante. Limite « par jour » : il n'y en a pas, juste rate-limit 30/h/IP + 10 à la fois + 15 Mo/photo.
+- **Fix compression** : `sharp` installé (validé Cyril) + pipeline dans `/api/upload` : `.rotate()` (auto-orientation) + `resize(1600, fit inside)` + `jpeg(q72)`. Poids ÷8-10 → capacité ~×9 (~3000 photos) et bande passante effondrée. Repli try/catch sur l'original si sharp échoue. Convertit tout en JPEG → un HEIC devient lisible par la modération (règle le pending HEIC).
+- **Dossiers par jour** : le chemin storage passe de plat à `{jour}/{nom}.jpg` (`vendredi/`, `samedi/`, `dimanche/`, `a-classer/`). Jour calculé AVANT l'upload. `filename` (colonne DB) stocke le chemin complet, utilisé aussi en lecture (`createSignedUrl` dans `app/api/photos/route.ts`) → cohérent. **Caveat** : le dossier reflète le jour choisi à l'envoi ; une reclassification via le modérateur change la DB mais PAS le dossier du fichier. C'est une commodité dashboard, le tri applicatif reste piloté par la colonne DB `moment`.
+- **Migration** : aucune. La base est vide (0 photo), donc pas d'anciens fichiers à plat à déplacer. Les nouveaux uploads créent les dossiers automatiquement.
+- **Preuves** : `tsc` clean, `next build` OK (sharp bundle bien, `runtime nodejs`), test E2E auto-nettoyant contre le vrai bucket (upload `samedi/` + compression 70k→11k + signed URL + remove, zéro insert base, zéro appel Claude). Au push, Vercel installera sharp (linux) automatiquement.
+
 ## État (29/06/2026) — fonctionnel, déployé, vérifié
 Appli de partage de photos pour le mariage du 11/07. Stack : Next.js 16 + Supabase (storage `Photos` + table `photos`) + Vercel.
 - Repo : `cyrilfrancisco20/wedding-photos`. Projet Vercel renommé `photosmariage1107`, prod sur `main` (auto-deploy au push).
