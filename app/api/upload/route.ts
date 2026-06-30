@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import exifr from 'exifr'
+import sharp from 'sharp'
 import { supabaseAdmin } from '@/lib/supabase'
 import { moderatePhoto } from '@/lib/moderate'
 import { exifDateToParisISO, dayForTakenAt, dayForInstant, isBucket, UNSORTED, type Bucket } from '@/lib/schedule'
@@ -65,27 +66,49 @@ export async function POST(req: NextRequest) {
         return { error: `${file.name} : format non accepté (JPEG, PNG, WEBP uniquement)` }
       }
 
-      const ext = file.name.split('.').pop()
-      const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-      const buffer = Buffer.from(await file.arrayBuffer())
+      const original = Buffer.from(await file.arrayBuffer())
+
+      // Jour calculé AVANT l'upload : il sert de dossier de rangement dans le
+      // bucket. EXIF lu sur l'original (la compression strippe les métadonnées).
+      // Priorité : jour choisi par l'invité > date EXIF > heure d'upload > à classer.
+      const takenAt = await readTakenAt(original)
+      const fromExif = takenAt ? dayForTakenAt(new Date(takenAt)) : UNSORTED
+      const moment: Bucket =
+        selectedDay ?? (fromExif !== UNSORTED ? fromExif : dayForInstant(new Date()) ?? UNSORTED)
+
+      // Compression : auto-orientation puis redimensionnement max 1600px, JPEG q72.
+      // Divise le poids ~8-10x (stockage Free 1 Go + bande passante) et convertit
+      // en JPEG (un HEIC devient lisible par la modération). Repli sur l'original
+      // si sharp échoue (ex. HEIC non décodable par le binaire).
+      let body: Buffer = original
+      let contentType = file.type
+      let ext = file.name.split('.').pop() || 'jpg'
+      try {
+        body = await sharp(original)
+          .rotate()
+          .resize(1600, 1600, { fit: 'inside', withoutEnlargement: true })
+          .jpeg({ quality: 72 })
+          .toBuffer()
+        contentType = 'image/jpeg'
+        ext = 'jpg'
+      } catch {
+        // sharp n'a pas pu décoder (rare) : on garde l'original tel quel.
+      }
+
+      // Chemin = dossier du jour + nom unique. Le `filename` (chemin complet) est
+      // stocké en base et sert aussi à la lecture (createSignedUrl côté galerie).
+      const filename = `${moment}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
 
       const { error: storageError } = await admin.storage
         .from('Photos')
-        .upload(filename, buffer, { contentType: file.type })
+        .upload(filename, body, { contentType })
 
       if (storageError) return { error: storageError.message }
 
       const { data: urlData } = admin.storage.from('Photos').getPublicUrl(filename)
 
-      // Priorité du jour : le jour choisi par l'invité d'abord (signal explicite),
-      // sinon la date EXIF si présente, sinon l'heure d'upload, sinon « à classer ».
-      const takenAt = await readTakenAt(buffer)
-      const fromExif = takenAt ? dayForTakenAt(new Date(takenAt)) : UNSORTED
-      const moment: Bucket =
-        selectedDay ?? (fromExif !== UNSORTED ? fromExif : dayForInstant(new Date()) ?? UNSORTED)
-
       // Modération IA avant publication : décide approved / rejected / pending.
-      const { status, reason } = await moderatePhoto(buffer.toString('base64'), file.type)
+      const { status, reason } = await moderatePhoto(body.toString('base64'), contentType)
 
       const { error: dbError } = await admin
         .from('photos')
