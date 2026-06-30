@@ -1,14 +1,33 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fdf8f5;
-  --foreground: #1a1a1a;
+  /* Nuit & or — papeterie de faire-part (surfaces mobiles claires) */
+  --ivoire: #F4EFE4;        /* fond */
+  --ivoire-raise: #FBF8F1;  /* cartes, mat des photos */
+  --nuit: #1B2436;          /* titres, texte fort */
+  --nuit-soft: #3C4862;     /* corps */
+  --or: #B8924A;            /* fil, sceau, accents */
+  --or-deep: #97742F;       /* accents qui portent du texte */
+  --ciel: #7E8898;          /* métadonnées, états discrets */
+  --filet: #E4DAC8;         /* hairlines sur ivoire */
+
+  /* Nuit & or — projection + surfaces sombres (vrai noir bleuté) */
+  --nuit-scene: #10151F;
+  --nuit-raise: rgba(244, 239, 228, 0.05); /* champs / cartes sur fond sombre */
+  --filet-nuit: rgba(184, 146, 74, 0.28);  /* hairlines or sur fond sombre */
+
+  --background: var(--ivoire);
+  --foreground: var(--nuit);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Georgia, 'Times New Roman', serif;
+  background: var(--ivoire);
+  color: var(--nuit);
+  font-family: var(--font-body), system-ui, -apple-system, sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-display), Georgia, "Times New Roman", serif;
 }
 
 @keyframes fadeIn {
@@ -23,5 +42,130 @@ body {
   100% { opacity: 0; }
 }
 
-.fade-in { animation: fadeIn 0.5s ease forwards; }
-.pulse-soft { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+/* Le fil d'or se dessine du haut vers le bas au chargement. */
+@keyframes threadDraw {
+  from { transform: scaleY(0); }
+  to   { transform: scaleY(1); }
+}
+
+.fade-in { animation: fadeIn 0.6s ease forwards; }
+
+.thread {
+  transform-origin: top;
+  animation: threadDraw 1.2s cubic-bezier(0.33, 0, 0.2, 1) forwards;
+}
+
+/* Filigrane d'or du hero : lent flottement vertical. */
+@keyframes drift {
+  0%, 100% { transform: translateY(0); opacity: 0.5; }
+  50%      { transform: translateY(-10px); opacity: 0.85; }
+}
+.drift { animation: drift 6s ease-in-out infinite; }
+
+/* Reveal au scroll (IntersectionObserver ajoute .is-visible). */
+.reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.7s ease, transform 0.7s ease; }
+.reveal.is-visible { opacity: 1; transform: none; }
+
+/* Carrousel : masque la scrollbar, garde le swipe natif. */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Barre d'onglets givrée (glassmorphism, une seule touche). */
+.glass {
+  background: rgba(244, 239, 228, 0.82);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* ====================================================================
+   Projection cinéma — la photo ne reste jamais immobile, jamais sur du
+   noir mort. Pur habillage : aucune incidence sur le flux/planning.
+   ==================================================================== */
+
+/* Ken Burns : lent zoom + dérive sur chaque photo, alterné une diapo sur
+   deux pour casser la répétition. */
+@keyframes kenburnsA {
+  from { transform: scale(1.005) translate(0, 0); }
+  to   { transform: scale(1.085) translate(-1.6%, -1.1%); }
+}
+@keyframes kenburnsB {
+  from { transform: scale(1.085) translate(1.6%, 1.1%); }
+  to   { transform: scale(1.005) translate(0, 0); }
+}
+.kenburns-a { animation: kenburnsA var(--slide-motion, 7.2s) ease-out both; will-change: transform; }
+.kenburns-b { animation: kenburnsB var(--slide-motion, 7.2s) ease-out both; will-change: transform; }
+
+/* Fond ambiant : la même photo, plein cadre, floutée et assombrie, en très
+   lent battement d'échelle. Remplace les bandes noires par une matière. */
+@keyframes ambientDrift {
+  0%, 100% { transform: scale(1.12); }
+  50%      { transform: scale(1.2); }
+}
+/* will-change : la couche floutée est rasterisée une fois puis seulement
+   transformée (GPU) — le flou n'est PAS recalculé à chaque frame. */
+.ambient { animation: ambientDrift 16s ease-in-out infinite; will-change: transform; }
+
+/* Filet d'or du bas-de-cadre : se dessine depuis la gauche. */
+@keyframes ruleDraw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.rule-draw { transform-origin: left; animation: ruleDraw 1s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* Le bas-de-cadre remonte en douceur à chaque changement de moment. */
+@keyframes lowerRise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+.lower-rise { animation: lowerRise 1s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* Jauge de progression de la diapo : se remplit sur la durée d'affichage,
+   resynchronisée à chaque diapo par la clé React. */
+@keyframes slideProgress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.slide-progress { transform-origin: left; animation: slideProgress var(--slide-dur, 6s) linear forwards; }
+
+/* Anneau d'attente (envoi en cours) — fin filet d'or qui tourne. */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { animation: spin 0.9s linear infinite; }
+
+/* Boutons et vignettes : léger soulèvement au survol, transition douce. */
+.lift { transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease; }
+.lift:hover { transform: translateY(-2px); }
+
+/* Entrée orchestrée de la cover (galerie) : chaque élément remonte, en cascade
+   via animation-delay inline. */
+@keyframes coverRise { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: none; } }
+.cover-rise { opacity: 0; animation: coverRise 1s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+/* Vignettes de la galerie : révélation en cascade quand le chapitre entre en
+   vue. Couplé au système .reveal/.is-visible (IntersectionObserver), décalage
+   par vignette via transition-delay inline. */
+.tile { opacity: 0; transform: translateY(16px); transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+.reveal.is-visible .tile { opacity: 1; transform: none; }
+
+/* ====================================================================
+   Maquette « Variante A » (route /apercu) — style éditorial doux,
+   photo plein cadre, transitions fluides. Auto-contenu, ne touche pas
+   les surfaces réelles.
+   ==================================================================== */
+@keyframes mqZoom { from { transform: scale(1.03); } to { transform: scale(1.12); } }
+.mq-zoom { animation: mqZoom 22s ease-in-out infinite alternate; }
+.mq-wipe { clip-path: inset(0 0 100% 0); transition: clip-path 1.15s cubic-bezier(0.16, 1, 0.3, 1); }
+.mq-wipe.is-visible { clip-path: inset(0 0 0 0); }
+
+@media (prefers-reduced-motion: reduce) {
+  .mq-zoom { animation: none; }
+  .mq-wipe { clip-path: inset(0); transition: none; }
+  .fade-in,
+  .thread,
+  .drift { animation: none; }
+  .thread { transform: none; }
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .kenburns-a,
+  .kenburns-b,
+  .ambient { animation: none; }
+  .kenburns-a,
+  .kenburns-b { transform: none; }
+  .ambient { transform: scale(1.12); }
+  .rule-draw { animation: none; transform: none; }
+  .lower-rise { animation: none; opacity: 1; transform: none; }
+  .slide-progress { animation: none; transform: scaleX(1); }
+  .spin { animation: none; }
+  .lift:hover { transform: none; }
+  .cover-rise { opacity: 1; animation: none; transform: none; }
+  .tile { opacity: 1; transform: none; transition: none; }
+}
