@@ -1,6 +1,9 @@
 # Primer — wedding-photos (appli photos du mariage, 11/07/2026)
 
-## RETOUCHES DESIGN (30/06/2026) — FAIT sur branche `retouches-design` (commit e020f5c), NON poussé
+## ⤷ POUSSÉ + DÉPLOYÉ EN PROD (30/06/2026)
+Les 2 chantiers ci-dessous (retouches design + compression/dossiers) ont été mergés dans `main` (sommet `6339b3c`) et auto-déployés par Vercel. Vérifié en prod : bundle CSS contient le bloc `.gal-a` terra (#c77b5e) → galerie Variante A live ; `/apercu` = 404 ; `/accueil/hero.png`+g1-g3 = 200 (héro OK) ; ancien `/maquette/` = 404. Reste à prouver par un vrai upload (compression+dossier) : non testé sur prod pour ne pas polluer (validé en local E2E). **Vider la base avant le 11/07** après tes tests.
+
+## RETOUCHES DESIGN (30/06/2026) — FAIT + déployé (commit e020f5c)
 Reprise après la session « General coding » surchargée. Le refactor « par jour » était déjà mergé+poussé dans `main` (commit `001f78c`, donc déjà auto-déployé en prod, contrairement à ce que disait l'ancienne section « EN ATTENTE GO PUSH » ci-dessous, désormais périmée). Prod actuelle = par jour fonctionnel mais galerie encore en or + modérateur ancienne charte.
 Les 4 retouches demandées, traitées en pur habillage (aucune logique touchée) :
 1. **Galerie → Variante A claire** : override CSS **scopé** `.gal-a` sur le `<main>` (+ lightbox) dans `globals.css`. Redéfinit localement les tokens (`--or`→terra #C77B5E, `--nuit`→encre #4A3A30, `--ivoire`→#F7F2E9, etc.) alignés sur l'accueil, SANS toucher la projection (qui partage les noms de tokens mais reste sombre/or). Lightbox réchauffée (fond ink, hairlines ivoire). Vérifié : cover + onglets + timeline + nœuds en terra, zéro or.
@@ -10,7 +13,7 @@ Les 4 retouches demandées, traitées en pur habillage (aucune logique touchée)
 - **Preuves** : `tsc --noEmit` clean ; lint = baseline inchangée (6 err préexistantes set-state-in-effect/img/apostrophe, 0 ajoutée) ; rendu mobile vérifié sur les 4 surfaces (galerie+accueil+modérateur clairs Variante A, projection sombre/or intacte), 0 erreur console.
 - **PROCHAINE ÉTAPE = ton GO PUSH** : `git push origin retouches-design` puis merge dans `main` (ou push direct main) → Vercel auto-déploie. Le QR pointe déjà sur la prod, donc rien à recâbler. Tester avec quelques proches, puis vider la base avant le 11/07.
 
-## CAPACITÉ + STORAGE (30/06/2026) — FAIT sur `retouches-design` (commit 87ca76d), NON poussé
+## CAPACITÉ + STORAGE (30/06/2026) — FAIT + déployé (commit 87ca76d)
 Suite aux questions de Cyril sur la capacité et le rangement Supabase.
 - **Constat capacité** : plan Free Supabase = ~1 Go storage + ~5 Go bande passante/mois (à confirmer dans Settings→Usage). Le code stockait les photos **brutes** (pas de compression, `sharp` n'était pas installé), 2-5 Mo/photo → **~340 photos max pour TOUT le mariage** (pas par jour), soit ~2,6/convive sur 130. La projection en boucle (refresh 15s) menaçait surtout la bande passante. Limite « par jour » : il n'y en a pas, juste rate-limit 30/h/IP + 10 à la fois + 15 Mo/photo.
 - **Fix compression** : `sharp` installé (validé Cyril) + pipeline dans `/api/upload` : `.rotate()` (auto-orientation) + `resize(1600, fit inside)` + `jpeg(q72)`. Poids ÷8-10 → capacité ~×9 (~3000 photos) et bande passante effondrée. Repli try/catch sur l'original si sharp échoue. Convertit tout en JPEG → un HEIC devient lisible par la modération (règle le pending HEIC).
