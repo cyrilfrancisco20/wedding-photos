@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import exifr from 'exifr'
 import { supabaseAdmin } from '@/lib/supabase'
 import { moderatePhoto } from '@/lib/moderate'
-import { exifDateToParisISO, bucketForTakenAt, momentForInstant, isBucket, UNSORTED, type Bucket } from '@/lib/schedule'
+import { exifDateToParisISO, dayForTakenAt, dayForInstant, isBucket, UNSORTED, type Bucket } from '@/lib/schedule'
 
 // Lit la date de prise de vue dans l'EXIF (DateTimeOriginal, sinon CreateDate).
 // reviveValues:false => on récupère la chaîne brute "YYYY:MM:DD HH:MM:SS" et on
@@ -48,10 +48,11 @@ export async function POST(req: NextRequest) {
   if (!files.length) return NextResponse.json({ error: 'Aucun fichier' }, { status: 400 })
   if (files.length > 10) return NextResponse.json({ error: 'Maximum 10 photos à la fois' }, { status: 400 })
 
-  // Moment choisi par l'invité (iOS strippe la date EXIF, donc l'EXIF ne suffit
-  // pas). Sert quand la photo n'a pas de date. Repli ultime : l'heure d'upload.
+  // Jour choisi par l'invité (Vendredi / Samedi / Dimanche). C'est le signal
+  // principal : l'invité clique son jour, et iOS strippe la date EXIF de toute
+  // façon. L'EXIF et l'heure d'upload ne servent que de repli.
   const picked = form.get('moment')
-  const selectedMoment: Bucket | null = isBucket(picked) ? picked : null
+  const selectedDay: Bucket | null = isBucket(picked) ? picked : null
 
   const admin = supabaseAdmin()
 
@@ -76,12 +77,12 @@ export async function POST(req: NextRequest) {
 
       const { data: urlData } = admin.storage.from('Photos').getPublicUrl(filename)
 
-      // Priorité du moment : date EXIF si présente (la plus fiable), sinon le
-      // moment choisi par l'invité, sinon l'heure d'upload (à classer hors créneau).
+      // Priorité du jour : le jour choisi par l'invité d'abord (signal explicite),
+      // sinon la date EXIF si présente, sinon l'heure d'upload, sinon « à classer ».
       const takenAt = await readTakenAt(buffer)
-      const moment = takenAt
-        ? bucketForTakenAt(new Date(takenAt))
-        : selectedMoment ?? momentForInstant(new Date())?.id ?? UNSORTED
+      const fromExif = takenAt ? dayForTakenAt(new Date(takenAt)) : UNSORTED
+      const moment: Bucket =
+        selectedDay ?? (fromExif !== UNSORTED ? fromExif : dayForInstant(new Date()) ?? UNSORTED)
 
       // Modération IA avant publication : décide approved / rejected / pending.
       const { status, reason } = await moderatePhoto(buffer.toString('base64'), file.type)

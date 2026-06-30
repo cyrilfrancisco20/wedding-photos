@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import Image from 'next/image'
-import { MOMENTS, DAY_ORDER, DAY_LABELS, UNSORTED, ALL_BUCKET_LABELS, type Day, type Bucket } from '@/lib/schedule'
+import { DAY_ORDER, DAY_LABELS, UNSORTED, ALL_BUCKET_LABELS, type Day, type Bucket } from '@/lib/schedule'
 import { WEDDING, COUPLE } from '@/lib/wedding'
 import { demoPhotos } from '@/lib/demoPhotos'
 
@@ -59,14 +59,11 @@ export default function GaleriePage() {
 
   const unsortedCount = byMoment.get(UNSORTED)?.length ?? 0
 
+  // Un chapitre = un jour (modèle « par jour »).
   const chapters =
     tab === UNSORTED
       ? [{ id: UNSORTED, label: ALL_BUCKET_LABELS[UNSORTED], photos: byMoment.get(UNSORTED) ?? [] }]
-      : MOMENTS.filter((m) => m.day === tab && (byMoment.get(m.id)?.length ?? 0) > 0).map((m) => ({
-          id: m.id,
-          label: m.label,
-          photos: byMoment.get(m.id) ?? [],
-        }))
+      : [{ id: tab, label: DAY_LABELS[tab as Day], photos: byMoment.get(tab) ?? [] }]
 
   const tabs: Tab[] = [...DAY_ORDER, ...(unsortedCount > 0 ? [UNSORTED] : [])]
 

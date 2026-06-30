@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, useCallback } from 'react'
 import Image from 'next/image'
-import { momentForInstant, momentById, dayForBucket, DAY_LABELS, type Bucket } from '@/lib/schedule'
+import { dayForInstant, dayById, DAY_LABELS, type Bucket, type Day } from '@/lib/schedule'
 import { WEDDING, COUPLE } from '@/lib/wedding'
 import { demoPhotos } from '@/lib/demoPhotos'
 
@@ -38,11 +38,11 @@ export default function ProjectionPage() {
   const [now, setNow] = useState(() => new Date())
   const [index, setIndex] = useState(0)
   const [visible, setVisible] = useState(true)
-  // Forçage manuel via ?moment=aperitif : test avant le jour J et secours si
-  // l'horaire dérape. Ignore alors l'horloge et la veille.
+  // Forçage manuel via ?jour=samedi : test avant le jour J et secours si
+  // l'horloge dérape. Ignore alors l'horloge.
   const [forced, setForced] = useState<string | null>(null)
   useEffect(() => {
-    setForced(new URLSearchParams(window.location.search).get('moment'))
+    setForced(new URLSearchParams(window.location.search).get('jour'))
   }, [])
 
   const fetchPhotos = useCallback(async () => {
@@ -63,22 +63,15 @@ export default function ProjectionPage() {
     return () => clearInterval(refresh)
   }, [fetchPhotos])
 
-  // Moment forcé par l'URL en priorité, sinon le moment de l'horloge.
-  const forcedMoment = forced ? momentById(forced) : undefined
-  const current = forcedMoment ?? momentForInstant(now)
-  const isForced = !!forcedMoment
+  // Jour forcé par l'URL en priorité, sinon le jour de l'horloge.
+  const forcedDay = forced && dayById(forced) ? (forced as Day) : null
+  const currentDay = forcedDay ?? dayForInstant(now)
 
-  // Photos à projeter : le moment courant d'abord, complété par le reste du jour.
-  // En mode forcé, on ignore la veille (cérémonie) pour pouvoir voir l'écran.
+  // Photos à projeter : toutes les photos approuvées du jour courant.
   const playlist = useMemo(() => {
-    if (!current || (!isForced && !current.projects)) return []
-    const day = current.day
-    const primary = photos.filter((p) => p.moment === current.id).sort(recentFirst)
-    const backfill = photos
-      .filter((p) => p.moment !== current.id && dayForBucket(p.moment ?? 'a-classer') === day)
-      .sort(recentFirst)
-    return [...primary, ...backfill]
-  }, [photos, current, isForced])
+    if (!currentDay) return []
+    return photos.filter((p) => p.moment === currentDay).sort(recentFirst)
+  }, [photos, currentDay])
 
   useEffect(() => {
     if (playlist.length <= 1) return
@@ -92,14 +85,11 @@ export default function ProjectionPage() {
     return () => clearInterval(timer)
   }, [playlist.length])
 
-  // Veille : cérémonie, hors créneaux, ou créneau encore sans photo.
-  // Le mode forcé court-circuite la veille de cérémonie.
-  if (!current || (!isForced && !current.projects) || playlist.length === 0) {
-    const message = !current
+  // Veille : hors des trois jours, ou jour courant encore sans photo.
+  if (!currentDay || playlist.length === 0) {
+    const message = !currentDay
       ? 'À tout de suite'
-      : !isForced && !current.projects
-        ? `${current.label} en cours`
-        : `En attente des premières photos · ${current.label}`
+      : `En attente des premières photos · ${DAY_LABELS[currentDay]}`
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-7 select-none" style={{ background: 'var(--nuit-scene)' }}>
         <span className="drift"><Seal size={108} /></span>
@@ -155,13 +145,12 @@ export default function ProjectionPage() {
         {WEDDING.dateLabel}
       </span>
 
-      {/* Bas-de-cadre éditorial : remonte à chaque changement de moment. */}
-      <div key={current.id} className="lower-rise absolute flex items-end gap-4 pointer-events-none" style={{ left: 40, bottom: 34 }}>
+      {/* Bas-de-cadre éditorial : remonte à chaque changement de jour. */}
+      <div key={currentDay} className="lower-rise absolute flex items-end gap-4 pointer-events-none" style={{ left: 40, bottom: 34 }}>
         <Seal size={48} />
         <div className="flex flex-col">
           <span className="rule-draw" style={{ width: 56, height: 1, background: 'var(--or)', marginBottom: 12 }} />
-          <span style={{ color: 'var(--or)', fontSize: '0.68rem', letterSpacing: '0.32em', textTransform: 'uppercase', marginBottom: 4 }}>{DAY_LABELS[current.day]}</span>
-          <span className="font-display italic" style={{ color: 'var(--ivoire)', fontSize: '2.5rem', lineHeight: 1 }}>{current.label}</span>
+          <span className="font-display italic" style={{ color: 'var(--ivoire)', fontSize: '2.5rem', lineHeight: 1 }}>{DAY_LABELS[currentDay]}</span>
         </div>
       </div>
 

@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
-import { MOMENTS, UNSORTED, ALL_BUCKET_LABELS, type Bucket } from '@/lib/schedule'
+import { DAY_ORDER, UNSORTED, ALL_BUCKET_LABELS, type Bucket } from '@/lib/schedule'
 
 type Photo = { id: string; url: string; created_at: string; moment: Bucket | null; moderation_reason?: string | null }
 type View = 'pending' | 'classer'
 
-const MOMENT_OPTIONS: Bucket[] = [...MOMENTS.map((m) => m.id), UNSORTED]
+const MOMENT_OPTIONS: Bucket[] = [...DAY_ORDER, UNSORTED]
 
 export default function ModerateurPage() {
   const [token, setToken] = useState('')

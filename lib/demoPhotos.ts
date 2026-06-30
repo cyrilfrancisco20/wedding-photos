@@ -2,7 +2,7 @@
 // jour J). N'est JAMAIS chargé en prod : les pages ne l'appellent que si l'URL
 // contient ?demo. Images = SVG inline en data-URI, zéro requête réseau.
 
-import { MOMENTS, type Bucket } from './schedule'
+import { DAYS, type Bucket } from './schedule'
 
 export type DemoPhoto = {
   id: string
@@ -32,27 +32,23 @@ function tile(i: number): string {
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
 }
 
-// Quelques photos par moment, en ordre chronologique plausible.
+// Nombre de photos par jour.
 const COUNTS: Record<string, number> = {
-  mairie: 4,
-  'soiree-vendredi': 5,
-  preparatifs: 6,
-  aperitif: 14,
-  repas: 9,
-  'soiree-samedi': 7,
-  brunch: 5,
+  vendredi: 9,
+  samedi: 18,
+  dimanche: 6,
 }
 
 export function demoPhotos(): DemoPhoto[] {
   const out: DemoPhoto[] = []
   let i = 0
-  for (const m of MOMENTS) {
-    const n = COUNTS[m.id] ?? 0
-    const start = Date.parse(m.start)
-    const span = Date.parse(m.end) - start
+  for (const d of DAYS) {
+    const n = COUNTS[d.day] ?? 0
+    const start = Date.parse(d.start)
+    const span = Date.parse(d.end) - start
     for (let k = 0; k < n; k++) {
       const t = new Date(start + (span * (k + 1)) / (n + 1)).toISOString()
-      out.push({ id: `demo-${i}`, url: tile(i), moment: m.id, taken_at: t, created_at: t })
+      out.push({ id: `demo-${i}`, url: tile(i), moment: d.day, taken_at: t, created_at: t })
       i++
     }
   }
