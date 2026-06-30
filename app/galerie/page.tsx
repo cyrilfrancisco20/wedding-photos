@@ -6,7 +6,7 @@ import { DAY_ORDER, DAY_LABELS, UNSORTED, ALL_BUCKET_LABELS, type Day, type Buck
 import { WEDDING, COUPLE } from '@/lib/wedding'
 import { demoPhotos } from '@/lib/demoPhotos'
 
-type Photo = { id: string; url: string; moment: Bucket | null; taken_at: string | null; created_at: string }
+type Photo = { id: string; url: string; thumbUrl?: string | null; moment: Bucket | null; taken_at: string | null; created_at: string }
 type Tab = Day | typeof UNSORTED
 type Lightbox = { list: Photo[]; i: number }
 
@@ -168,7 +168,7 @@ export default function GaleriePage() {
                     background: 'var(--ivoire-raise)',
                   }}
                 >
-                  <Image src={p.url} alt="" fill className="object-cover" unoptimized preload={idx < 2} />
+                  <Image src={p.thumbUrl || p.url} alt="" fill className="object-cover" unoptimized preload={idx < 2} />
                   {p.moment && (
                     <span
                       className="glass font-display italic absolute"
@@ -243,7 +243,7 @@ export default function GaleriePage() {
                           className="tile group relative aspect-square overflow-hidden"
                           style={{ borderRadius: 3, border: '1px solid var(--filet)', background: 'var(--ivoire-raise)', transitionDelay: `${Math.min(k, 10) * 45}ms` }}
                         >
-                          <Image src={p.url} alt="" fill className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]" unoptimized />
+                          <Image src={p.thumbUrl || p.url} alt="" fill className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]" unoptimized />
                           <span className="absolute inset-0 transition-opacity duration-500 opacity-0 group-hover:opacity-100" style={{ background: 'linear-gradient(to top, rgba(74,58,48,0.32), transparent 55%)' }} aria-hidden="true" />
                         </button>
                       ))}
@@ -293,9 +293,21 @@ function Viewer({ lightbox, onClose, onMove }: { lightbox: Lightbox; onClose: ()
         </>
       )}
 
-      <div className="absolute left-0 right-0 text-center" style={{ bottom: 26 }}>
+      <div className="absolute left-0 right-0 flex flex-col items-center" style={{ bottom: 24 }}>
         {photo.moment && <p className="font-display italic" style={{ color: 'var(--or)', fontSize: '1.2rem' }}>{ALL_BUCKET_LABELS[photo.moment]}</p>}
-        {lightbox.list.length > 1 && <p className="mt-1" style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', letterSpacing: '0.15em' }}>{lightbox.i + 1} / {lightbox.list.length}</p>}
+        <a
+          href={photo.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          download
+          onClick={(e) => e.stopPropagation()}
+          className="mt-2 flex items-center gap-2 rounded-full"
+          style={{ padding: '7px 16px', border: '1px solid rgba(247,242,233,0.4)', color: 'var(--or)', fontSize: '0.82rem' }}
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><path d="M7 10l5 5 5-5" /><path d="M12 15V3" /></svg>
+          Télécharger
+        </a>
+        {lightbox.list.length > 1 && <p className="mt-2" style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', letterSpacing: '0.15em' }}>{lightbox.i + 1} / {lightbox.list.length}</p>}
       </div>
 
       <button onClick={onClose} className="font-display absolute top-5 right-5 flex items-center justify-center rounded-full" style={{ width: 42, height: 42, border: '1px solid rgba(247,242,233,0.4)', color: 'var(--or)', fontSize: '1.5rem' }} aria-label="Fermer">×</button>

@@ -76,39 +76,57 @@ export async function POST(req: NextRequest) {
       const moment: Bucket =
         selectedDay ?? (fromExif !== UNSORTED ? fromExif : dayForInstant(new Date()) ?? UNSORTED)
 
-      // Compression : auto-orientation puis redimensionnement max 1600px, JPEG q72.
-      // Divise le poids ~8-10x (stockage Free 1 Go + bande passante) et convertit
-      // en JPEG (un HEIC devient lisible par la modération). Repli sur l'original
-      // si sharp échoue (ex. HEIC non décodable par le binaire).
-      let body: Buffer = original
-      let contentType = file.type
-      let ext = file.name.split('.').pop() || 'jpg'
+      // Deux dérivés générés à l'upload (objectif « archive imprimable ») :
+      //  - PLEIN : JPEG cap 3000px q88 -> qualité tirage jusqu'au A4, lisible
+      //    partout (HEIC converti), orientation corrigée. Sert lightbox + download.
+      //  - VIGNETTE : JPEG ~600px q72 -> grille galerie légère (egress) + entrée de
+      //    la modération (toujours du JPEG analysable, règle le cas HEIC).
+      // Repli sur l'original si sharp ne décode pas (rare, ex. HEIC) : pas de vignette.
+      const base = `${moment}/${Date.now()}-${Math.random().toString(36).slice(2)}`
+      let fullBody: Buffer = original
+      let fullType = file.type
+      let fullExt = file.name.split('.').pop() || 'jpg'
+      let thumbBody: Buffer | null = null
       try {
-        body = await sharp(original)
+        fullBody = await sharp(original)
           .rotate()
-          .resize(1600, 1600, { fit: 'inside', withoutEnlargement: true })
+          .resize(3000, 3000, { fit: 'inside', withoutEnlargement: true })
+          .jpeg({ quality: 88 })
+          .toBuffer()
+        fullType = 'image/jpeg'
+        fullExt = 'jpg'
+        thumbBody = await sharp(original)
+          .rotate()
+          .resize(600, 600, { fit: 'inside', withoutEnlargement: true })
           .jpeg({ quality: 72 })
           .toBuffer()
-        contentType = 'image/jpeg'
-        ext = 'jpg'
       } catch {
-        // sharp n'a pas pu décoder (rare) : on garde l'original tel quel.
+        // sharp n'a pas pu décoder : on garde l'original, sans vignette.
       }
 
-      // Chemin = dossier du jour + nom unique. Le `filename` (chemin complet) est
-      // stocké en base et sert aussi à la lecture (createSignedUrl côté galerie).
-      const filename = `${moment}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+      // `filename` (chemin complet) est stocké en base et sert à la lecture
+      // (createSignedUrl). La vignette vit à `<base>.thumb.jpg`, dérivée par
+      // convention côté galerie.
+      const filename = `${base}.${fullExt}`
 
       const { error: storageError } = await admin.storage
         .from('Photos')
-        .upload(filename, body, { contentType })
+        .upload(filename, fullBody, { contentType: fullType })
 
       if (storageError) return { error: storageError.message }
 
+      if (thumbBody) {
+        await admin.storage
+          .from('Photos')
+          .upload(`${base}.thumb.jpg`, thumbBody, { contentType: 'image/jpeg' })
+      }
+
       const { data: urlData } = admin.storage.from('Photos').getPublicUrl(filename)
 
-      // Modération IA avant publication : décide approved / rejected / pending.
-      const { status, reason } = await moderatePhoto(body.toString('base64'), contentType)
+      // Modération IA avant publication : sur la vignette JPEG si dispo (rapide +
+      // HEIC analysable), sinon sur le plein. Décide approved / rejected / pending.
+      const modBody = thumbBody ?? fullBody
+      const { status, reason } = await moderatePhoto(modBody.toString('base64'), thumbBody ? 'image/jpeg' : fullType)
 
       const { error: dbError } = await admin
         .from('photos')

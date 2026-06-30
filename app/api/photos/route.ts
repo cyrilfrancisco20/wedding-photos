@@ -24,10 +24,16 @@ export async function GET(req: NextRequest) {
 
   const signed = await Promise.all(
     data.map(async (photo) => {
-      const { data: urlData, error: urlError } = await admin.storage
-        .from('Photos')
-        .createSignedUrl(photo.filename, SIGNED_URL_EXPIRY)
-      return { ...photo, url: urlError ? null : urlData?.signedUrl }
+      // Vignette dérivée par convention : <base>.thumb.jpg à côté du plein.
+      const thumbPath = photo.filename.replace(/\.[^./]+$/, '.thumb.jpg')
+      const [full, thumb] = await Promise.all([
+        admin.storage.from('Photos').createSignedUrl(photo.filename, SIGNED_URL_EXPIRY),
+        admin.storage.from('Photos').createSignedUrl(thumbPath, SIGNED_URL_EXPIRY),
+      ])
+      const url = full.error ? null : full.data?.signedUrl
+      // Repli sur le plein si pas de vignette (photo sans dérivé).
+      const thumbUrl = thumb.error || !thumb.data?.signedUrl ? url : thumb.data.signedUrl
+      return { ...photo, url, thumbUrl }
     })
   )
 
