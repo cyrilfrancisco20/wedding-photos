@@ -1,15 +1,15 @@
 # Primer — wedding-photos (appli photos du mariage, 11/07/2026)
 
-## QUALITÉ IMPRESSION + EGRESS (30/06/2026) — FAIT sur branche `print-quality-egress` (commit c185065), NON poussé
+## QUALITÉ IMPRESSION + EGRESS (30/06/2026) — DÉPLOYÉ EN PROD + VÉRIFIÉ (commit 228d8fe sur main)
 Cyril veut **garder les photos en qualité imprimable** (tirages des favorites), pas un gadget jetable. Décision : version conservée en 3000px (pas 1600px), + vignettes pour l'egress.
 - **Constat egress (vu sur dashboard Supabase)** : storage = non-sujet (base 24 Mo, storage 0,002 Go). Le vrai mur = **egress 2,624 / 5 Go déjà consommés AVANT le mariage** (surtout tests de dev, pas les invités). À surveiller.
 - **Changement upload** (remplace le 1600px du commit précédent) : 2 dérivés par photo.
   * PLEIN : sharp cap **3000px q88** (~1-2 Mo) → tirage jusqu'au A4 (~250 dpi), JPEG (HEIC converti, orientation corrigée). Sert lightbox + téléchargement.
   * VIGNETTE : sharp **600px q72** (~30-50 Ko) à `<base>.thumb.jpg` → grille galerie (egress) + entrée modération (JPEG analysable, règle HEIC).
 - **`/api/photos`** renvoie `thumbUrl` (vignette dérivée par regex `\.[^./]+$ → .thumb.jpg`, repli sur le plein si absente). **Galerie** : grille+carrousel = vignette, lightbox = plein, **bouton Télécharger** (récupère le 3000px).
-- **Plan Pro : PAS obligatoire.** 3000px = ~450 Mo pour 300 photos, tient dans le Free 1 Go. Pro ($25/mois) = seulement un filet egress. **Décideur = date de reset du cycle de facturation** (Settings→Billing) : si reset avant 11/07, Free suffit ; sinon Pro un mois. Cyril prêt à payer si besoin. Storage image transformations Supabase = réservé aux plans payants (pas utilisé, on génère la vignette nous-mêmes).
-- **Preuves** : tsc clean, next build OK, test E2E réel (plein 3000×2250 + vignette 600×450 28 Ko dans `samedi/`, signed URLs + dérivation cohérentes, nettoyé, zéro insert/zéro Claude), lightbox + bouton Télécharger vérifiés à l'écran.
-- **À FAIRE** : pousser `print-quality-egress` → merge `main` (déploie le 3000px ; le 1600px est encore en prod). Puis Cyril teste un vrai upload et tranche Pro selon la date de reset.
+- **Plan Pro : RECOMMANDÉ (egress).** Storage non-sujet (3000px = ~450 Mo/300 photos, tient dans Free 1 Go). MAIS cycle de facturation reset le **26 du mois** (facture 26/06 → prochain reset 26/07, APRÈS le mariage). Donc Free ne se recharge pas avant le 11/07 : on attaque à 2,6/5 Go, ~2,4 Go de marge = trop juste pour 130 invités (butinage + téléchargements pleins à ~1,5 Mo). Reco tranchée : **Pro un mois ($25, 250 Go egress), redescendre en Free après le mariage**. Cyril prêt à payer. Décision en attente côté Cyril.
+- **Preuves** : tsc clean, next build OK, test E2E réel (plein 3000×2250 + vignette 600×450 28 Ko dans `samedi/`, signed URLs + dérivation cohérentes, nettoyé, zéro insert/zéro Claude), lightbox + bouton Télécharger vérifiés à l'écran. **Déploiement prod confirmé** : JS servi contient `Télécharger` + `thumbUrl`.
+- **À FAIRE côté Cyril** : (1) trancher Pro (reco oui), (2) tester un vrai upload sur prod (envoi → modération → galerie vignette → lightbox plein → Télécharger), (3) vider la base avant le 11/07.
 
 ## ⤷ POUSSÉ + DÉPLOYÉ EN PROD (30/06/2026)
 Les 2 chantiers ci-dessous (retouches design + compression/dossiers) ont été mergés dans `main` (sommet `6339b3c`) et auto-déployés par Vercel. Vérifié en prod : bundle CSS contient le bloc `.gal-a` terra (#c77b5e) → galerie Variante A live ; `/apercu` = 404 ; `/accueil/hero.png`+g1-g3 = 200 (héro OK) ; ancien `/maquette/` = 404. Reste à prouver par un vrai upload (compression+dossier) : non testé sur prod pour ne pas polluer (validé en local E2E). **Vider la base avant le 11/07** après tes tests.
