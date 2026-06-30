@@ -1,5 +1,15 @@
 # Primer — wedding-photos (appli photos du mariage, 11/07/2026)
 
+## RETOUCHES DESIGN (30/06/2026) — FAIT sur branche `retouches-design` (commit e020f5c), NON poussé
+Reprise après la session « General coding » surchargée. Le refactor « par jour » était déjà mergé+poussé dans `main` (commit `001f78c`, donc déjà auto-déployé en prod, contrairement à ce que disait l'ancienne section « EN ATTENTE GO PUSH » ci-dessous, désormais périmée). Prod actuelle = par jour fonctionnel mais galerie encore en or + modérateur ancienne charte.
+Les 4 retouches demandées, traitées en pur habillage (aucune logique touchée) :
+1. **Galerie → Variante A claire** : override CSS **scopé** `.gal-a` sur le `<main>` (+ lightbox) dans `globals.css`. Redéfinit localement les tokens (`--or`→terra #C77B5E, `--nuit`→encre #4A3A30, `--ivoire`→#F7F2E9, etc.) alignés sur l'accueil, SANS toucher la projection (qui partage les noms de tokens mais reste sombre/or). Lightbox réchauffée (fond ink, hairlines ivoire). Vérifié : cover + onglets + timeline + nœuds en terra, zéro or.
+2. **Modérateur rhabillé** : charte claire (ivory/terra/Cormorant), icônes SVG inline à la place des emoji (cadenas/check/croix/refresh). Logique (login, loadPhotos, moderate, reassign) intacte. Connexion vérifiée visuellement ; vue interne non vue (pas le `MODERATOR_PASSWORD`) mais même palette/composants que l'accueil déjà validé.
+3. **g4/g5 ÉCARTÉ** (à raison) : ces 2 placeholders ne vivaient que dans `/apercu` (maquette jetable). La vraie galerie affiche les photos uploadées (Supabase), aucune image statique. Les remplacer = travail perdu. Validé avec Cyril.
+4. **Nettoyage** : `/apercu` supprimé, `public/maquette/` supprimé. Vraies images (hero.png + g1/g2/g3) déplacées vers **`public/accueil/`**, refs accueil mises à jour. CSS `.mq-wipe` orphelin retiré, `.mq-zoom` conservé (héro accueil l'utilise).
+- **Preuves** : `tsc --noEmit` clean ; lint = baseline inchangée (6 err préexistantes set-state-in-effect/img/apostrophe, 0 ajoutée) ; rendu mobile vérifié sur les 4 surfaces (galerie+accueil+modérateur clairs Variante A, projection sombre/or intacte), 0 erreur console.
+- **PROCHAINE ÉTAPE = ton GO PUSH** : `git push origin retouches-design` puis merge dans `main` (ou push direct main) → Vercel auto-déploie. Le QR pointe déjà sur la prod, donc rien à recâbler. Tester avec quelques proches, puis vider la base avant le 11/07.
+
 ## État (29/06/2026) — fonctionnel, déployé, vérifié
 Appli de partage de photos pour le mariage du 11/07. Stack : Next.js 16 + Supabase (storage `Photos` + table `photos`) + Vercel.
 - Repo : `cyrilfrancisco20/wedding-photos`. Projet Vercel renommé `photosmariage1107`, prod sur `main` (auto-deploy au push).
