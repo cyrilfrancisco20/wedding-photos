@@ -98,7 +98,7 @@ export default function GaleriePage() {
   }
 
   return (
-    <main style={{ background: 'var(--ivoire)' }}>
+    <main className="gal-a" style={{ background: 'var(--ivoire)' }}>
 
       {/* Cover : faire-part plein écran, entrée orchestrée au chargement */}
       <section className="relative flex flex-col items-center justify-center text-center px-6" style={{ minHeight: '88vh' }}>
@@ -244,7 +244,7 @@ export default function GaleriePage() {
                           style={{ borderRadius: 3, border: '1px solid var(--filet)', background: 'var(--ivoire-raise)', transitionDelay: `${Math.min(k, 10) * 45}ms` }}
                         >
                           <Image src={p.url} alt="" fill className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]" unoptimized />
-                          <span className="absolute inset-0 transition-opacity duration-500 opacity-0 group-hover:opacity-100" style={{ background: 'linear-gradient(to top, rgba(16,21,31,0.28), transparent 55%)' }} aria-hidden="true" />
+                          <span className="absolute inset-0 transition-opacity duration-500 opacity-0 group-hover:opacity-100" style={{ background: 'linear-gradient(to top, rgba(74,58,48,0.32), transparent 55%)' }} aria-hidden="true" />
                         </button>
                       ))}
                     </div>
@@ -271,8 +271,8 @@ function Viewer({ lightbox, onClose, onMove }: { lightbox: Lightbox; onClose: ()
 
   return (
     <div
-      className="fixed inset-0 flex items-center justify-center z-50"
-      style={{ background: 'rgba(16,21,31,0.96)' }}
+      className="gal-a fixed inset-0 flex items-center justify-center z-50"
+      style={{ background: 'rgba(38,27,21,0.96)' }}
       onClick={onClose}
       onTouchStart={(e) => { startX.current = e.touches[0].clientX }}
       onTouchEnd={(e) => {
@@ -288,8 +288,8 @@ function Viewer({ lightbox, onClose, onMove }: { lightbox: Lightbox; onClose: ()
 
       {lightbox.list.length > 1 && (
         <>
-          <button onClick={(e) => { e.stopPropagation(); onMove(-1) }} className="font-display absolute left-3 sm:left-6 flex items-center justify-center rounded-full" style={{ width: 46, height: 46, border: '1px solid rgba(184,146,74,0.5)', color: 'var(--or)', fontSize: '1.6rem' }} aria-label="Précédent">‹</button>
-          <button onClick={(e) => { e.stopPropagation(); onMove(1) }} className="font-display absolute right-3 sm:right-6 flex items-center justify-center rounded-full" style={{ width: 46, height: 46, border: '1px solid rgba(184,146,74,0.5)', color: 'var(--or)', fontSize: '1.6rem' }} aria-label="Suivant">›</button>
+          <button onClick={(e) => { e.stopPropagation(); onMove(-1) }} className="font-display absolute left-3 sm:left-6 flex items-center justify-center rounded-full" style={{ width: 46, height: 46, border: '1px solid rgba(247,242,233,0.4)', color: 'var(--or)', fontSize: '1.6rem' }} aria-label="Précédent">‹</button>
+          <button onClick={(e) => { e.stopPropagation(); onMove(1) }} className="font-display absolute right-3 sm:right-6 flex items-center justify-center rounded-full" style={{ width: 46, height: 46, border: '1px solid rgba(247,242,233,0.4)', color: 'var(--or)', fontSize: '1.6rem' }} aria-label="Suivant">›</button>
         </>
       )}
 
@@ -298,7 +298,7 @@ function Viewer({ lightbox, onClose, onMove }: { lightbox: Lightbox; onClose: ()
         {lightbox.list.length > 1 && <p className="mt-1" style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', letterSpacing: '0.15em' }}>{lightbox.i + 1} / {lightbox.list.length}</p>}
       </div>
 
-      <button onClick={onClose} className="font-display absolute top-5 right-5 flex items-center justify-center rounded-full" style={{ width: 42, height: 42, border: '1px solid rgba(184,146,74,0.5)', color: 'var(--or)', fontSize: '1.5rem' }} aria-label="Fermer">×</button>
+      <button onClick={onClose} className="font-display absolute top-5 right-5 flex items-center justify-center rounded-full" style={{ width: 42, height: 42, border: '1px solid rgba(247,242,233,0.4)', color: 'var(--or)', fontSize: '1.5rem' }} aria-label="Fermer">×</button>
     </div>
   )
 }

@@ -3,11 +3,21 @@
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { DAY_ORDER, UNSORTED, ALL_BUCKET_LABELS, type Bucket } from '@/lib/schedule'
+import type { ReactNode } from 'react'
 
 type Photo = { id: string; url: string; created_at: string; moment: Bucket | null; moderation_reason?: string | null }
 type View = 'pending' | 'classer'
 
 const MOMENT_OPTIONS: Bucket[] = [...DAY_ORDER, UNSORTED]
+
+// Charte « Variante A » claire, alignée sur l'accueil et la galerie.
+const C = { ivory: '#F7F2E9', blush: '#ECD8CF', sage: '#DDE3D2', terra: '#C77B5E', ink: '#4A3A30', muted: '#9A8470', red: '#C0584A' }
+
+function Icon({ children }: { children: ReactNode }) {
+  return (
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{children}</svg>
+  )
+}
 
 export default function ModerateurPage() {
   const [token, setToken] = useState('')
@@ -82,21 +92,25 @@ export default function ModerateurPage() {
   if (!authed) {
     return (
       <main className="min-h-screen flex items-center justify-center px-6"
-        style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)' }}>
-        <div className="bg-white rounded-2xl p-8 w-full max-w-sm text-center shadow-xl">
-          <div className="text-4xl mb-4">🔐</div>
-          <h1 className="text-xl font-bold text-stone-800 mb-6">Espace modérateur</h1>
+        style={{ background: C.ivory, color: C.ink, fontFamily: 'var(--font-body), system-ui, sans-serif' }}>
+        <div className="w-full max-w-sm text-center" style={{ background: '#fff', borderRadius: 16, padding: 32, border: `1px solid ${C.blush}`, boxShadow: '0 18px 44px -22px rgba(120,80,50,0.4)' }}>
+          <span className="inline-flex items-center justify-center rounded-full" style={{ width: 52, height: 52, border: `1px solid ${C.terra}`, color: C.terra }}>
+            <Icon><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></Icon>
+          </span>
+          <h1 className="font-display" style={{ fontWeight: 500, fontSize: '1.6rem', margin: '18px 0 22px' }}>Espace modérateur</h1>
           <input
             type="password"
             placeholder="Mot de passe"
             value={token}
             onChange={(e) => setToken(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && login()}
-            className="w-full border border-stone-200 rounded-xl px-4 py-3 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-rose-300"
+            className="w-full text-sm mb-4 focus:outline-none"
+            style={{ border: `1px solid ${C.blush}`, borderRadius: 12, padding: '12px 16px', color: C.ink, background: C.ivory }}
           />
           <button
             onClick={login}
-            className="w-full bg-rose-500 text-white rounded-xl py-3 text-sm font-medium hover:bg-rose-600 transition-colors"
+            className="lift w-full text-sm font-medium"
+            style={{ background: C.terra, color: '#fff', borderRadius: 12, padding: '12px 0' }}
           >
             Entrer
           </button>
@@ -106,36 +120,40 @@ export default function ModerateurPage() {
   }
 
   return (
-    <main className="min-h-screen bg-stone-50 px-4 py-8">
+    <main className="min-h-screen px-4 py-8" style={{ background: C.ivory, color: C.ink, fontFamily: 'var(--font-body), system-ui, sans-serif' }}>
       <div className="max-w-2xl mx-auto">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold text-stone-800">Modération</h1>
-          <button onClick={loadPhotos} className="text-sm text-rose-500 hover:text-rose-700 font-medium">
+        <div className="flex items-center justify-between mb-5">
+          <h1 className="font-display" style={{ fontWeight: 500, fontSize: '1.9rem' }}>Modération</h1>
+          <button onClick={loadPhotos} className="flex items-center gap-1.5 text-sm font-medium" style={{ color: C.terra }}>
+            <Icon><path d="M21 12a9 9 0 1 1-2.64-6.36" /><path d="M21 3v6h-6" /></Icon>
             Actualiser
           </button>
         </div>
 
         <div className="flex gap-2 mb-6">
-          <button
-            onClick={() => setView('pending')}
-            className={`px-4 py-2 rounded-full text-sm transition-colors ${view === 'pending' ? 'bg-rose-500 text-white' : 'bg-white text-stone-500'}`}
-          >
-            En attente · {counts.pending}
-          </button>
-          <button
-            onClick={() => setView('classer')}
-            className={`px-4 py-2 rounded-full text-sm transition-colors ${view === 'classer' ? 'bg-rose-500 text-white' : 'bg-white text-stone-500'}`}
-          >
-            À classer · {counts.classer}
-          </button>
+          {([['pending', 'En attente', counts.pending], ['classer', 'À classer', counts.classer]] as const).map(([v, label, n]) => {
+            const active = view === v
+            return (
+              <button
+                key={v}
+                onClick={() => setView(v)}
+                className="text-sm transition-colors"
+                style={{ padding: '8px 18px', borderRadius: 999, background: active ? C.terra : '#fff', color: active ? '#fff' : C.muted, border: `1px solid ${active ? C.terra : C.blush}` }}
+              >
+                {label} · {n}
+              </button>
+            )
+          })}
         </div>
 
-        {loading && <div className="text-center py-16 text-stone-400">Chargement...</div>}
+        {loading && <div className="text-center py-16" style={{ color: C.muted }}>Chargement…</div>}
 
         {!loading && photos.length === 0 && (
           <div className="text-center py-16">
-            <div className="text-4xl mb-3">✅</div>
-            <p className="text-stone-500">
+            <span className="inline-flex items-center justify-center rounded-full" style={{ width: 48, height: 48, border: `1px solid ${C.terra}`, color: C.terra }}>
+              <Icon><path d="M20 6 9 17l-5-5" /></Icon>
+            </span>
+            <p style={{ color: C.muted, marginTop: 14 }}>
               {view === 'pending' ? 'Aucune photo en attente' : 'Aucune photo à classer'}
             </p>
           </div>
@@ -143,20 +161,21 @@ export default function ModerateurPage() {
 
         <div className="grid grid-cols-1 gap-4">
           {photos.map((photo) => (
-            <div key={photo.id} className="bg-white rounded-2xl overflow-hidden shadow-sm">
-              <div className="relative w-full h-72">
+            <div key={photo.id} className="overflow-hidden" style={{ background: '#fff', borderRadius: 16, border: `1px solid ${C.blush}`, boxShadow: '0 14px 36px -22px rgba(120,80,50,0.4)' }}>
+              <div className="relative w-full h-72" style={{ background: '#ece2d4' }}>
                 <Image src={photo.url} alt="Photo à modérer" fill className="object-contain" unoptimized />
               </div>
               {photo.moderation_reason && (
-                <p className="px-4 pt-3 text-xs text-stone-400">🤖 {photo.moderation_reason}</p>
+                <p className="px-4 pt-3 text-xs" style={{ color: C.muted }}>IA · {photo.moderation_reason}</p>
               )}
 
-              <div className="flex items-center gap-2 px-4 pt-3">
-                <span className="text-xs text-stone-400">Moment</span>
+              <div className="flex items-center gap-2.5 px-4 pt-3">
+                <span className="uppercase" style={{ fontSize: '0.6rem', letterSpacing: '0.2em', color: C.muted }}>Jour</span>
                 <select
                   value={photo.moment ?? UNSORTED}
                   onChange={(e) => reassign(photo.id, e.target.value as Bucket)}
-                  className="flex-1 border border-stone-200 rounded-lg px-3 py-2 text-sm text-stone-700 focus:outline-none focus:ring-2 focus:ring-rose-300"
+                  className="flex-1 text-sm focus:outline-none"
+                  style={{ border: `1px solid ${C.blush}`, borderRadius: 10, padding: '8px 12px', color: C.ink, background: C.ivory }}
                 >
                   {MOMENT_OPTIONS.map((m) => (
                     <option key={m} value={m}>{ALL_BUCKET_LABELS[m]}</option>
@@ -168,15 +187,19 @@ export default function ModerateurPage() {
                 <div className="flex gap-3 p-4">
                   <button
                     onClick={() => moderate(photo.id, 'approved')}
-                    className="flex-1 bg-emerald-500 text-white rounded-xl py-3 text-sm font-medium hover:bg-emerald-600 transition-colors"
+                    className="lift flex-1 flex items-center justify-center gap-2 text-sm font-medium"
+                    style={{ background: C.terra, color: '#fff', borderRadius: 12, padding: '12px 0' }}
                   >
-                    ✓ Approuver
+                    <Icon><path d="M20 6 9 17l-5-5" /></Icon>
+                    Approuver
                   </button>
                   <button
                     onClick={() => moderate(photo.id, 'rejected')}
-                    className="flex-1 bg-red-100 text-red-500 rounded-xl py-3 text-sm font-medium hover:bg-red-200 transition-colors"
+                    className="lift flex-1 flex items-center justify-center gap-2 text-sm font-medium"
+                    style={{ background: '#fff', color: C.red, borderRadius: 12, padding: '12px 0', border: `1px solid ${C.red}33` }}
                   >
-                    ✕ Refuser
+                    <Icon><path d="M18 6 6 18" /><path d="m6 6 12 12" /></Icon>
+                    Refuser
                   </button>
                 </div>
               )}

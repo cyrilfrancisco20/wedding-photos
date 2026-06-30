@@ -11,9 +11,9 @@ import { WEDDING, COUPLE } from '@/lib/wedding'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || ''
 const DAY_PHOTO: Record<Day, string> = {
-  vendredi: '/maquette/g1.jpg',
-  samedi: '/maquette/g2.jpg',
-  dimanche: '/maquette/g3.jpg',
+  vendredi: '/accueil/g1.jpg',
+  samedi: '/accueil/g2.jpg',
+  dimanche: '/accueil/g3.jpg',
 }
 
 const C = { ivory: '#F7F2E9', blush: '#ECD8CF', sage: '#DDE3D2', terra: '#C77B5E', ink: '#4A3A30', muted: '#9A8470' }
@@ -56,7 +56,7 @@ export default function GuestPage() {
 
       {/* HÉRO plein cadre : le faire-part porte déjà prénoms + date. */}
       <section className="relative overflow-hidden" style={{ height: '64vh', minHeight: 420 }}>
-        <img src="/maquette/hero.png" alt="Morgane & Cyril" className="mq-zoom absolute inset-0 w-full h-full object-cover" />
+        <img src="/accueil/hero.png" alt="Morgane & Cyril" className="mq-zoom absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-x-0 bottom-0 pointer-events-none" style={{ height: '30%', background: 'linear-gradient(to top, rgba(40,25,18,0.42), transparent)' }} />
         <div className="absolute inset-x-0 flex flex-col items-center fade-in" style={{ bottom: 22, color: '#FBF6EC' }}>
           <span className="uppercase" style={{ fontSize: '0.58rem', letterSpacing: '0.34em' }}>Partagez vos photos</span>

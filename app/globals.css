@@ -78,6 +78,25 @@ body {
 }
 
 /* ====================================================================
+   Galerie « Variante A » claire — override scopé des tokens sur le
+   <main class="gal-a"> (et la lightbox). La galerie partage les noms de
+   tokens avec l'accueil et la projection ; on les redéfinit LOCALEMENT
+   pour passer de l'or au terra sans toucher la projection (qui reste
+   sombre/or). Palette alignée sur l'accueil (Variante A).
+   ==================================================================== */
+.gal-a {
+  --ivoire: #F7F2E9;        /* fond ivoire de l'album */
+  --ivoire-raise: #ECE2D4;  /* mat sous les photos / cartes */
+  --nuit: #4A3A30;          /* titres, texte fort (encre brune) */
+  --nuit-soft: #5D4736;     /* corps, italiques */
+  --or: #C77B5E;            /* accents terra (fil, sceau, nœuds) */
+  --or-deep: #A85F44;       /* terra profond pour petits libellés */
+  --ciel: #9A8470;          /* métadonnées discrètes */
+  --filet: #E8D7CB;         /* hairlines blush sur ivoire */
+}
+.gal-a .glass { background: rgba(247, 242, 233, 0.85); }
+
+/* ====================================================================
    Projection cinéma — la photo ne reste jamais immobile, jamais sur du
    noir mort. Pur habillage : aucune incidence sur le flux/planning.
    ==================================================================== */
@@ -138,18 +157,13 @@ body {
 .reveal.is-visible .tile { opacity: 1; transform: none; }
 
 /* ====================================================================
-   Maquette « Variante A » (route /apercu) — style éditorial doux,
-   photo plein cadre, transitions fluides. Auto-contenu, ne touche pas
-   les surfaces réelles.
+   Héro accueil — très lent zoom respiré sur le faire-part plein cadre.
    ==================================================================== */
 @keyframes mqZoom { from { transform: scale(1.03); } to { transform: scale(1.12); } }
 .mq-zoom { animation: mqZoom 22s ease-in-out infinite alternate; }
-.mq-wipe { clip-path: inset(0 0 100% 0); transition: clip-path 1.15s cubic-bezier(0.16, 1, 0.3, 1); }
-.mq-wipe.is-visible { clip-path: inset(0 0 0 0); }
 
 @media (prefers-reduced-motion: reduce) {
   .mq-zoom { animation: none; }
-  .mq-wipe { clip-path: inset(0); transition: none; }
   .fade-in,
   .thread,
   .drift { animation: none; }
