@@ -78,10 +78,6 @@ export default function ProjectionPage() {
       <div className="proj-a relative overflow-hidden min-h-screen flex flex-col items-center justify-center gap-7 select-none" style={{ background: 'var(--nuit-scene)' }}>
         <img src="/accueil/hero.png" alt="" aria-hidden="true" className="mq-zoom absolute inset-0 w-full h-full object-cover" style={{ opacity: 0.55 }} />
         <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at center, rgba(23,16,10,0.55) 0%, rgba(23,16,10,0.82) 100%)' }} />
-        <div className="absolute flex items-center gap-3 pointer-events-none" style={{ left: 40, top: 30 }}>
-          <Seal size={34} />
-          <span className="font-display" style={{ color: 'rgba(244,239,228,0.72)', fontSize: '1.05rem', letterSpacing: '0.05em' }}>{COUPLE}</span>
-        </div>
         <p className="relative font-display italic" style={{ color: 'rgba(244,239,228,0.85)', fontSize: '1.5rem', letterSpacing: '0.02em', textShadow: '0 2px 14px rgba(0,0,0,0.5)' }}>{message}</p>
       </div>
     )

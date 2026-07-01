@@ -3,9 +3,7 @@
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import Image from 'next/image'
 import { DAY_ORDER, DAY_LABELS, UNSORTED, ALL_BUCKET_LABELS, type Day, type Bucket } from '@/lib/schedule'
-import { COUPLE } from '@/lib/wedding'
 import { demoPhotos } from '@/lib/demoPhotos'
-import { Seal } from '@/app/components/Seal'
 
 type Photo = { id: string; url: string; thumbUrl?: string | null; moment: Bucket | null; taken_at: string | null; created_at: string }
 type Tab = Day | typeof UNSORTED
@@ -102,21 +100,14 @@ export default function GaleriePage() {
     <main className="gal-a" style={{ background: 'var(--ivoire)' }}>
 
       {/* Cover : même hero que l'accueil en fond (zoom lent), entrée orchestrée au chargement */}
-      <section className="relative overflow-hidden flex flex-col items-center justify-end text-center px-6" style={{ minHeight: '88vh', paddingBottom: 96 }}>
+      <section className="relative overflow-hidden text-center px-6" style={{ minHeight: '88vh' }}>
         <img src="/accueil/hero.png" alt="" aria-hidden="true" className="mq-zoom absolute inset-0 w-full h-full object-cover" />
         <div
           className="absolute inset-0 pointer-events-none"
           style={{ background: 'radial-gradient(ellipse at center, rgba(20,13,8,0.25) 0%, rgba(20,13,8,0.62) 100%), linear-gradient(180deg, rgba(20,13,8,0.55), rgba(20,13,8,0.42) 45%, rgba(20,13,8,0.7))' }}
         />
-        <div className="thread absolute" style={{ top: '12%', width: 1, height: 90, background: 'var(--or)', opacity: 0.55 }} aria-hidden="true" />
-        <div className="absolute flex items-center gap-2.5 pointer-events-none" style={{ left: 20, top: 16 }}>
-          <Seal size={30} />
-          <span className="font-display" style={{ color: 'rgba(251,246,236,0.82)', fontSize: '0.92rem', letterSpacing: '0.04em', textShadow: '0 2px 10px rgba(0,0,0,0.4)' }}>{COUPLE}</span>
-        </div>
-        <p className="cover-rise font-display italic" style={{ color: 'rgba(251,246,236,0.92)', fontSize: 'clamp(1.3rem, 4vw, 1.7rem)', textShadow: '0 2px 14px rgba(0,0,0,0.5)', animationDelay: '0.3s' }}>
-          Le fil de la journée, photo après photo.
-        </p>
-        <div className="cover-rise absolute flex flex-col items-center gap-2" style={{ bottom: 28, color: 'rgba(251,246,236,0.75)', textShadow: '0 2px 10px rgba(0,0,0,0.5)', animationDelay: '0.85s' }}>
+        <div className="thread absolute" style={{ top: '12%', left: 'calc(50% - 0.5px)', width: 1, height: 90, background: 'var(--or)', opacity: 0.55 }} aria-hidden="true" />
+        <div className="cover-rise absolute inset-x-0 flex flex-col items-center gap-2" style={{ bottom: 28, color: 'rgba(251,246,236,0.75)', textShadow: '0 2px 10px rgba(0,0,0,0.5)', animationDelay: '0.3s' }}>
           <span className="uppercase" style={{ fontSize: '0.62rem', letterSpacing: '0.3em' }}>Découvrir</span>
           <span className="drift" style={{ fontSize: '1.1rem', lineHeight: 1 }}>↓</span>
         </div>

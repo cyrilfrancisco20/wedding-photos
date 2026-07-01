@@ -8,7 +8,6 @@ import { useRef, useState, type ReactNode } from 'react'
 import { QRCodeCanvas as QRCode } from 'qrcode.react'
 import { DAY_ORDER, DAY_LABELS, dayForInstant, type Day } from '@/lib/schedule'
 import { WEDDING, COUPLE } from '@/lib/wedding'
-import { Seal } from '@/app/components/Seal'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || ''
 const DAY_PHOTO: Record<Day, string> = {
@@ -63,10 +62,6 @@ export default function GuestPage() {
           style={{ background: 'radial-gradient(ellipse at center, rgba(20,13,8,0.2) 0%, rgba(20,13,8,0.6) 100%), linear-gradient(180deg, rgba(20,13,8,0.5), rgba(20,13,8,0.36) 45%, rgba(20,13,8,0.6))' }}
         />
         <div className="absolute inset-x-0 bottom-0 pointer-events-none" style={{ height: '30%', background: 'linear-gradient(to top, rgba(40,25,18,0.42), transparent)' }} />
-        <div className="absolute flex items-center gap-2.5 pointer-events-none" style={{ left: 20, top: 16 }}>
-          <Seal size={30} />
-          <span className="font-display" style={{ color: 'rgba(251,246,236,0.82)', fontSize: '0.92rem', letterSpacing: '0.04em', textShadow: '0 2px 10px rgba(0,0,0,0.4)' }}>{COUPLE}</span>
-        </div>
         <div className="absolute inset-x-0 flex flex-col items-center fade-in" style={{ bottom: 22, color: '#FBF6EC' }}>
           <span className="uppercase" style={{ fontSize: '0.58rem', letterSpacing: '0.34em' }}>Partagez vos photos</span>
           <span className="drift" style={{ fontSize: '1.1rem', lineHeight: 1, marginTop: 4 }}>↓</span>
