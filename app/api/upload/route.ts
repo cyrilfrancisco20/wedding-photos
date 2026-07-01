@@ -85,7 +85,10 @@ export async function POST(req: NextRequest) {
       const base = `${moment}/${Date.now()}-${Math.random().toString(36).slice(2)}`
       let fullBody: Buffer = original
       let fullType = file.type
-      let fullExt = file.name.split('.').pop() || 'jpg'
+      // Extension issue du nom de fichier client (chemin de repli si sharp ne
+      // décode pas) : on la nettoie pour qu'elle ne puisse pas injecter de slash
+      // ou de caractères de chemin dans la clé de stockage.
+      let fullExt = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 5) || 'jpg'
       let thumbBody: Buffer | null = null
       try {
         fullBody = await sharp(original)

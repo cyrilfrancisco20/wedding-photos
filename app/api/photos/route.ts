@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { validModToken } from '@/lib/auth'
 
 const SIGNED_URL_EXPIRY = 8 * 60 * 60 // 8 heures
 
@@ -11,8 +12,7 @@ export async function GET(req: NextRequest) {
   // en attente de revue ou bloqué par la modération) exigent le token modérateur,
   // même vérif que /api/moderate. Sans ça, n'importe qui lit le contenu rejeté.
   if (status !== 'approved') {
-    const token = req.headers.get('x-mod-token')
-    if (token !== process.env.MODERATOR_PASSWORD) {
+    if (!validModToken(req.headers.get('x-mod-token'))) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
     }
   }

@@ -6,7 +6,7 @@ import { DAY_ORDER, UNSORTED, ALL_BUCKET_LABELS, type Bucket } from '@/lib/sched
 import type { ReactNode } from 'react'
 
 type Photo = { id: string; url: string; created_at: string; moment: Bucket | null; moderation_reason?: string | null }
-type View = 'pending' | 'classer'
+type View = 'pending' | 'enligne' | 'classer' | 'refusees'
 
 const MOMENT_OPTIONS: Bucket[] = [...DAY_ORDER, UNSORTED]
 
@@ -25,7 +25,7 @@ export default function ModerateurPage() {
   const [view, setView] = useState<View>('pending')
   const [photos, setPhotos] = useState<Photo[]>([])
   const [loading, setLoading] = useState(false)
-  const [counts, setCounts] = useState({ pending: 0, classer: 0 })
+  const [counts, setCounts] = useState({ pending: 0, enligne: 0, classer: 0, refusees: 0 })
 
   async function login() {
     const res = await fetch('/api/moderate', {
@@ -43,19 +43,32 @@ export default function ModerateurPage() {
 
   async function loadPhotos() {
     setLoading(true)
-    // 'pending' est protégé côté serveur : on envoie le token modérateur.
-    // 'approved' reste public, pas besoin de header.
-    const [pending, classer] = await Promise.all([
-      fetch('/api/photos?status=pending', { headers: { 'x-mod-token': token } }).then((r) => r.json()),
-      fetch(`/api/photos?status=approved&moment=${UNSORTED}`).then((r) => r.json()),
+    // 'pending' et 'rejected' sont protégés côté serveur : on envoie le token.
+    // 'approved' (En ligne / À classer) reste public, pas besoin de header.
+    const h = { headers: { 'x-mod-token': token } }
+    const [pending, approved, rejected] = await Promise.all([
+      fetch('/api/photos?status=pending', h).then((r) => r.json()),
+      fetch('/api/photos?status=approved', h).then((r) => r.json()),
+      fetch('/api/photos?status=rejected', h).then((r) => r.json()),
     ])
     const pendingArr: Photo[] = Array.isArray(pending) ? pending : []
-    const classerArr: Photo[] = Array.isArray(classer) ? classer : []
-    setPhotos(view === 'pending' ? pendingArr : classerArr)
-    setCounts({ pending: pendingArr.length, classer: classerArr.length })
+    const approvedArr: Photo[] = Array.isArray(approved) ? approved : []
+    const rejectedArr: Photo[] = Array.isArray(rejected) ? rejected : []
+    // "À classer" = approuvées encore sans jour assigné.
+    const classerArr = approvedArr.filter((p) => (p.moment ?? UNSORTED) === UNSORTED)
+    const shown =
+      view === 'pending' ? pendingArr
+      : view === 'enligne' ? approvedArr
+      : view === 'classer' ? classerArr
+      : rejectedArr
+    setPhotos(shown)
+    setCounts({ pending: pendingArr.length, enligne: approvedArr.length, classer: classerArr.length, refusees: rejectedArr.length })
     setLoading(false)
   }
 
+  // Approuver / refuser / retirer / restaurer : une seule action serveur
+  // (status = approved|rejected). La photo quitte la liste courante, le compteur
+  // de la vue courante décrémente.
   async function moderate(id: string, action: 'approved' | 'rejected') {
     await fetch('/api/moderate', {
       method: 'POST',
@@ -63,7 +76,7 @@ export default function ModerateurPage() {
       body: JSON.stringify({ id, action, token }),
     })
     setPhotos((prev) => prev.filter((p) => p.id !== id))
-    setCounts((c) => ({ ...c, pending: c.pending - 1 }))
+    setCounts((c) => ({ ...c, [view]: Math.max(0, c[view] - 1) }))
   }
 
   async function reassign(id: string, moment: Bucket) {
@@ -132,8 +145,8 @@ export default function ModerateurPage() {
           </button>
         </div>
 
-        <div className="flex gap-2 mb-6">
-          {([['pending', 'En attente', counts.pending], ['classer', 'À classer', counts.classer]] as const).map(([v, label, n]) => {
+        <div className="flex flex-wrap gap-2 mb-6">
+          {([['pending', 'En attente', counts.pending], ['enligne', 'En ligne', counts.enligne], ['classer', 'À classer', counts.classer], ['refusees', 'Refusées', counts.refusees]] as const).map(([v, label, n]) => {
             const active = view === v
             return (
               <button
@@ -156,7 +169,10 @@ export default function ModerateurPage() {
               <Icon><path d="M20 6 9 17l-5-5" /></Icon>
             </span>
             <p style={{ color: C.muted, marginTop: 14 }}>
-              {view === 'pending' ? 'Aucune photo en attente' : 'Aucune photo à classer'}
+              {view === 'pending' ? 'Aucune photo en attente'
+                : view === 'enligne' ? 'Aucune photo en ligne'
+                : view === 'classer' ? 'Aucune photo à classer'
+                : 'Aucune photo refusée'}
             </p>
           </div>
         )}
@@ -171,19 +187,22 @@ export default function ModerateurPage() {
                 <p className="px-4 pt-3 text-xs" style={{ color: C.muted }}>IA · {photo.moderation_reason}</p>
               )}
 
-              <div className="flex items-center gap-2.5 px-4 pt-3">
-                <span className="uppercase" style={{ fontSize: '0.6rem', letterSpacing: '0.2em', color: C.muted }}>Jour</span>
-                <select
-                  value={photo.moment ?? UNSORTED}
-                  onChange={(e) => reassign(photo.id, e.target.value as Bucket)}
-                  className="flex-1 text-sm focus:outline-none"
-                  style={{ border: `1px solid ${C.blush}`, borderRadius: 10, padding: '8px 12px', color: C.ink, background: C.ivory }}
-                >
-                  {MOMENT_OPTIONS.map((m) => (
-                    <option key={m} value={m}>{ALL_BUCKET_LABELS[m]}</option>
-                  ))}
-                </select>
-              </div>
+              {/* Réaffectation du jour : utile partout sauf sur les refusées. */}
+              {view !== 'refusees' && (
+                <div className="flex items-center gap-2.5 px-4 pt-3">
+                  <span className="uppercase" style={{ fontSize: '0.6rem', letterSpacing: '0.2em', color: C.muted }}>Jour</span>
+                  <select
+                    value={photo.moment ?? UNSORTED}
+                    onChange={(e) => reassign(photo.id, e.target.value as Bucket)}
+                    className="flex-1 text-sm focus:outline-none"
+                    style={{ border: `1px solid ${C.blush}`, borderRadius: 10, padding: '8px 12px', color: C.ink, background: C.ivory }}
+                  >
+                    {MOMENT_OPTIONS.map((m) => (
+                      <option key={m} value={m}>{ALL_BUCKET_LABELS[m]}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               {view === 'pending' && (
                 <div className="flex gap-3 p-4">
@@ -205,6 +224,35 @@ export default function ModerateurPage() {
                   </button>
                 </div>
               )}
+
+              {/* En ligne : retirer la photo de la galerie et de la projection. */}
+              {view === 'enligne' && (
+                <div className="p-4">
+                  <button
+                    onClick={() => moderate(photo.id, 'rejected')}
+                    className="lift w-full flex items-center justify-center gap-2 text-sm font-medium"
+                    style={{ background: '#fff', color: C.red, borderRadius: 12, padding: '12px 0', border: `1px solid ${C.red}33` }}
+                  >
+                    <Icon><path d="M18 6 6 18" /><path d="m6 6 12 12" /></Icon>
+                    Retirer de l&apos;écran
+                  </button>
+                </div>
+              )}
+
+              {/* Refusées : récupérer un faux rejet et le remettre en ligne. */}
+              {view === 'refusees' && (
+                <div className="p-4">
+                  <button
+                    onClick={() => moderate(photo.id, 'approved')}
+                    className="lift w-full flex items-center justify-center gap-2 text-sm font-medium"
+                    style={{ background: C.terra, color: '#fff', borderRadius: 12, padding: '12px 0' }}
+                  >
+                    <Icon><path d="M20 6 9 17l-5-5" /></Icon>
+                    Restaurer (remettre en ligne)
+                  </button>
+                </div>
+              )}
+
               {view === 'classer' && <div className="pb-4" />}
             </div>
           ))}

@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { ALL_BUCKET_LABELS } from '@/lib/schedule'
+import { validModToken } from '@/lib/auth'
 
 const VALID_MOMENTS = new Set(Object.keys(ALL_BUCKET_LABELS))
 
 export async function POST(req: NextRequest) {
   const { id, action, moment, token } = await req.json()
 
-  if (token !== process.env.MODERATOR_PASSWORD) {
+  if (!validModToken(token)) {
     return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
   }
 
