@@ -91,14 +91,16 @@ export default function ProjectionPage() {
       ? 'À tout de suite'
       : `En attente des premières photos · ${DAY_LABELS[currentDay]}`
     return (
-      <div className="proj-a min-h-screen flex flex-col items-center justify-center gap-7 select-none" style={{ background: 'var(--nuit-scene)' }}>
-        <span className="drift"><Seal size={108} /></span>
-        <div className="flex flex-col items-center gap-3">
+      <div className="proj-a relative overflow-hidden min-h-screen flex flex-col items-center justify-center gap-7 select-none" style={{ background: 'var(--nuit-scene)' }}>
+        <img src="/accueil/hero.png" alt="" aria-hidden="true" className="mq-zoom absolute inset-0 w-full h-full object-cover" style={{ opacity: 0.55 }} />
+        <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at center, rgba(23,16,10,0.55) 0%, rgba(23,16,10,0.82) 100%)' }} />
+        <span className="drift relative"><Seal size={108} /></span>
+        <div className="relative flex flex-col items-center gap-3">
           <span className="font-display" style={{ color: 'var(--ivoire)', fontSize: '2.1rem', letterSpacing: '0.05em' }}>{COUPLE}</span>
           <span style={{ color: 'var(--or)', fontSize: '0.72rem', letterSpacing: '0.34em', textTransform: 'uppercase' }}>{WEDDING.dateLabel}</span>
         </div>
-        <span style={{ width: 44, height: 1, background: 'var(--filet)', opacity: 0.4 }} />
-        <p className="font-display italic" style={{ color: 'rgba(244,239,228,0.6)', fontSize: '1.5rem', letterSpacing: '0.02em' }}>{message}</p>
+        <span className="relative" style={{ width: 44, height: 1, background: 'var(--filet)', opacity: 0.4 }} />
+        <p className="relative font-display italic" style={{ color: 'rgba(244,239,228,0.6)', fontSize: '1.5rem', letterSpacing: '0.02em' }}>{message}</p>
       </div>
     )
   }

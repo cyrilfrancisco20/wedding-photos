@@ -100,11 +100,13 @@ export default function GaleriePage() {
   return (
     <main className="gal-a" style={{ background: 'var(--ivoire)' }}>
 
-      {/* Cover : faire-part plein écran, entrée orchestrée au chargement */}
-      <section className="relative flex flex-col items-center justify-center text-center px-6" style={{ minHeight: '88vh' }}>
+      {/* Cover : même hero que l'accueil en fond (zoom lent), entrée orchestrée au chargement */}
+      <section className="relative overflow-hidden flex flex-col items-center justify-center text-center px-6" style={{ minHeight: '88vh' }}>
+        <img src="/accueil/hero.png" alt="" aria-hidden="true" className="mq-zoom absolute inset-0 w-full h-full object-cover" />
+        <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(23,16,10,0.6), rgba(23,16,10,0.46) 45%, rgba(23,16,10,0.68))' }} />
         <div className="thread absolute" style={{ top: '12%', width: 1, height: 90, background: 'var(--or)', opacity: 0.55 }} aria-hidden="true" />
         <div
-          className="cover-rise mb-7 flex items-center justify-center rounded-full"
+          className="glass cover-rise mb-7 flex items-center justify-center rounded-full"
           style={{ width: 104, height: 104, border: '1px solid var(--or)', animationDelay: '0.15s' }}
         >
           <span className="font-display flex items-baseline" style={{ color: 'var(--or-deep)', fontSize: '2.5rem', letterSpacing: '0.02em' }}>
@@ -113,18 +115,18 @@ export default function GaleriePage() {
             {WEDDING.initials[1]}
           </span>
         </div>
-        <h1 className="cover-rise font-display" style={{ color: 'var(--nuit)', fontWeight: 500, lineHeight: 1.05, fontSize: 'clamp(2.6rem, 9vw, 4.5rem)', animationDelay: '0.3s' }}>
+        <h1 className="cover-rise font-display" style={{ color: '#FBF6EC', fontWeight: 500, lineHeight: 1.05, fontSize: 'clamp(2.6rem, 9vw, 4.5rem)', textShadow: '0 4px 22px rgba(0,0,0,0.55)', animationDelay: '0.3s' }}>
           {WEDDING.name1}
           <span className="font-display italic" style={{ color: 'var(--or)', fontWeight: 400 }}> &amp; </span>
           {WEDDING.name2}
         </h1>
-        <p className="cover-rise mt-4 uppercase" style={{ color: 'var(--ciel)', fontSize: 'clamp(0.7rem, 2vw, 0.82rem)', letterSpacing: '0.32em', animationDelay: '0.45s' }}>
+        <p className="cover-rise mt-4 uppercase" style={{ color: 'rgba(251,246,236,0.82)', fontSize: 'clamp(0.7rem, 2vw, 0.82rem)', letterSpacing: '0.32em', textShadow: '0 2px 12px rgba(0,0,0,0.5)', animationDelay: '0.45s' }}>
           {WEDDING.dateLabel}
         </p>
-        <p className="cover-rise font-display italic mt-5" style={{ color: 'var(--nuit-soft)', fontSize: 'clamp(1.05rem, 3vw, 1.35rem)', animationDelay: '0.58s' }}>
+        <p className="cover-rise font-display italic mt-5" style={{ color: 'rgba(251,246,236,0.88)', fontSize: 'clamp(1.05rem, 3vw, 1.35rem)', textShadow: '0 2px 14px rgba(0,0,0,0.5)', animationDelay: '0.58s' }}>
           Le fil de la journée, photo après photo.
         </p>
-        <div className="cover-rise absolute flex flex-col items-center gap-2" style={{ bottom: 28, color: 'var(--ciel)', animationDelay: '0.85s' }}>
+        <div className="cover-rise absolute flex flex-col items-center gap-2" style={{ bottom: 28, color: 'rgba(251,246,236,0.75)', textShadow: '0 2px 10px rgba(0,0,0,0.5)', animationDelay: '0.85s' }}>
           <span className="uppercase" style={{ fontSize: '0.62rem', letterSpacing: '0.3em' }}>Découvrir</span>
           <span className="drift" style={{ fontSize: '1.1rem', lineHeight: 1 }}>↓</span>
         </div>
