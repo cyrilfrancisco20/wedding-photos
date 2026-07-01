@@ -38,20 +38,27 @@ type Table = { name: string; seats: Menu[]; x: number; y: number }
 // x = centre en % de la largeur de la salle, y = centre en px sur le canevas.
 // Rangées 1 et 3 alignées en colonnes, rangée du milieu décalée d'une demi-table.
 const TABLES: Table[] = [
-  { name: 'Clos de Vougeot', x: 12.7, y: 260, seats: seats(10) },
-  { name: 'Pommard', x: 36.4, y: 260, seats: seats(10, ['enceinte']) },
-  { name: 'Nuits-Saint-Georges', x: 61.8, y: 260, seats: seats(9) },
-  { name: 'Saint-Aubin', x: 85, y: 260, seats: seats(10, ['vege', 'vege', 'vege', 'vegan']) },
-  { name: 'Montrachet', x: 24.9, y: 465, seats: seats(10) },
-  { name: 'Musigny', x: 50.3, y: 465, seats: seats(7) },
-  { name: 'Vosne-Romanée', x: 73.4, y: 465, seats: seats(10) },
-  { name: 'Meursault', x: 11.6, y: 670, seats: seats(10) },
-  { name: 'Volnay', x: 35.8, y: 670, seats: seats(9) },
-  { name: 'Aloxe-Corton', x: 61.3, y: 670, seats: seats(10, ['enceinte']) },
-  { name: 'Mercurey', x: 83.8, y: 670, seats: seats(9) },
+  { name: 'Clos de Vougeot', x: 12.7, y: 380, seats: seats(10) },
+  { name: 'Pommard', x: 36.4, y: 380, seats: seats(10, ['enceinte']) },
+  { name: 'Nuits-Saint-Georges', x: 61.8, y: 380, seats: seats(9) },
+  { name: 'Saint-Aubin', x: 85, y: 380, seats: seats(10, ['vege', 'vege', 'vege', 'vegan']) },
+  { name: 'Montrachet', x: 24.9, y: 585, seats: seats(10) },
+  { name: 'Musigny', x: 50.3, y: 585, seats: seats(7) },
+  { name: 'Vosne-Romanée', x: 73.4, y: 585, seats: seats(10) },
+  { name: 'Meursault', x: 11.6, y: 790, seats: seats(10) },
+  { name: 'Volnay', x: 35.8, y: 790, seats: seats(9) },
+  { name: 'Aloxe-Corton', x: 61.3, y: 790, seats: seats(10, ['enceinte']) },
+  { name: 'Mercurey', x: 83.8, y: 790, seats: seats(9) },
 ]
 
 const HEAD_TABLE = { name: 'Romanée-Conti', count: 25 }
+
+// Placement nominatif à la table des mariés (donné par Cyril, en partant d'en
+// haut à gauche puis dans le sens du tour de table).
+const HEAD_TOP = ['Guillaume', 'Marine', 'Michael', 'Benoit', 'Elodie', 'Morgane', 'Cyril', 'Yoan', 'Alexandra', 'Estelle', 'Alexandre', 'Anthony']
+const HEAD_END = 'Laetitia' // bout de table, à droite
+// Le tour continue de droite à gauche en bas ; rendu ici de gauche à droite.
+const HEAD_BOTTOM = ['Nathan', 'Audrey', 'Frédéric', 'Roxane', 'Allan', 'Nelly', 'Yannis', 'Jean-Christophe', 'Julie', 'Richard', 'Mathieu', 'Diane']
 const TOTAL = HEAD_TABLE.count + TABLES.reduce((n, t) => n + t.seats.length, 0)
 
 function SeatDot({ menu, size }: { menu: Menu; size: number }) {
@@ -156,26 +163,38 @@ export default function PlanDeTablePage() {
             jamais (c'est l'aménagement réel). Sur petit écran, défilement
             horizontal plutôt que réempilement des tables. */}
         <div className="overflow-x-auto no-scrollbar">
-          <div className="reveal relative mx-auto" style={{ minWidth: 760, maxWidth: 860, height: 758 }}>
+          <div className="reveal relative mx-auto" style={{ minWidth: 760, maxWidth: 860, height: 878 }}>
 
-            {/* TABLE DES MARIÉS : 12 chaises de chaque côté + 1 en bout de table à droite. */}
-            <div className="absolute" style={{ left: '27%', width: '52%', top: 6 }}>
-              <div className="flex justify-around" style={{ padding: '0 24px', marginBottom: 7 }}>
-                {Array.from({ length: 12 }).map((_, i) => <SeatDot key={i} menu="classique" size={12} />)}
+            {/* TABLE DES MARIÉS : 12 chaises nommées de chaque côté + Laetitia
+                en bout de table à droite. Prénoms inclinés façon étiquettes. */}
+            <div className="absolute" style={{ left: '27%', width: '52%', top: 60 }}>
+              <div className="relative" style={{ height: 16, margin: '0 24px' }}>
+                {HEAD_TOP.map((n, i) => (
+                  <span key={n} className="absolute" style={{ left: `${((i + 0.5) / 12) * 100}%`, top: 2 }}>
+                    <span className="absolute" style={{ transform: 'translateX(-50%)' }}><SeatDot menu="classique" size={12} /></span>
+                    <span className="font-display absolute" style={{ left: 2, bottom: 12, transform: 'rotate(-52deg)', transformOrigin: 'left bottom', whiteSpace: 'nowrap', fontSize: '0.74rem', color: 'var(--nuit-soft)' }}>{n}</span>
+                  </span>
+                ))}
               </div>
               <span className="absolute" style={{ right: -19, top: '50%', transform: 'translateY(-50%)' }}>
                 <SeatDot menu="classique" size={12} />
+                <span className="font-display absolute" style={{ left: 18, top: '50%', transform: 'translateY(-50%)', whiteSpace: 'nowrap', fontSize: '0.74rem', color: 'var(--nuit-soft)' }}>{HEAD_END}</span>
               </span>
               <div
                 className="flex flex-col items-center justify-center text-center"
-                style={{ minHeight: 84, borderRadius: 8, background: 'var(--or)', padding: '14px 20px' }}
+                style={{ minHeight: 84, borderRadius: 8, background: 'var(--or)', padding: '14px 20px', marginTop: 7 }}
               >
                 <span className="uppercase" style={{ fontSize: '0.56rem', letterSpacing: '0.3em', color: 'rgba(251,246,236,0.85)', fontWeight: 600 }}>Table des mariés</span>
                 <span className="font-display" style={{ fontSize: '1.5rem', fontWeight: 500, color: '#FBF6EC', lineHeight: 1.15, marginTop: 3 }}>{HEAD_TABLE.name}</span>
                 <span style={{ fontSize: '0.66rem', color: 'rgba(251,246,236,0.85)', marginTop: 3, letterSpacing: '0.04em' }}>{HEAD_TABLE.count} convives</span>
               </div>
-              <div className="flex justify-around" style={{ padding: '0 24px', marginTop: 7 }}>
-                {Array.from({ length: 12 }).map((_, i) => <SeatDot key={i} menu="classique" size={12} />)}
+              <div className="relative" style={{ height: 16, margin: '7px 24px 0' }}>
+                {HEAD_BOTTOM.map((n, i) => (
+                  <span key={n} className="absolute" style={{ left: `${((i + 0.5) / 12) * 100}%`, top: 2 }}>
+                    <span className="absolute" style={{ transform: 'translateX(-50%)' }}><SeatDot menu="classique" size={12} /></span>
+                    <span className="font-display absolute" style={{ right: 2, top: 12, transform: 'rotate(-52deg)', transformOrigin: 'right top', whiteSpace: 'nowrap', fontSize: '0.74rem', color: 'var(--nuit-soft)' }}>{n}</span>
+                  </span>
+                ))}
               </div>
             </div>
 
