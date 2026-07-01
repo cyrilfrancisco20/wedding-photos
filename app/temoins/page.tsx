@@ -202,6 +202,9 @@ export default function TemoinsPage() {
           Version quasi finalisée du 1er juillet. Réservé aux témoins : merci de ne pas faire circuler.
           Touchez votre prénom pour voir vos interventions.
         </p>
+        <p style={{ marginTop: 14 }}>
+          <a href="/plan-de-table" className="font-display italic" style={{ color: 'var(--or)', fontSize: '0.95rem' }}>Voir le plan de table →</a>
+        </p>
       </section>
 
       {/* FILTRE PAR PRÉNOM : barre givrée collante. */}
