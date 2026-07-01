@@ -6,9 +6,10 @@
 // Les pastilles autour des tables = un siège par convive ; les couleurs
 // signalent les menus spéciaux (femme enceinte, végétarien, vegan).
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Seal } from '@/app/components/Seal'
 import { COUPLE, WEDDING } from '@/lib/wedding'
+import { HEAD_TABLE_NAME, HEAD_TOP, HEAD_END, HEAD_BOTTOM, headPlace } from '@/lib/plan'
 
 type Menu = 'classique' | 'enceinte' | 'vege' | 'vegan'
 
@@ -51,17 +52,11 @@ const TABLES: Table[] = [
   { name: 'Mercurey', x: 83.8, y: 790, seats: seats(9) },
 ]
 
-const HEAD_TABLE = { name: 'Romanée-Conti', count: 25 }
-
-// Placement nominatif à la table des mariés (donné par Cyril, en partant d'en
-// haut à gauche puis dans le sens du tour de table).
-const HEAD_TOP = ['Guillaume', 'Marine', 'Michael', 'Benoit', 'Elodie', 'Morgane', 'Cyril', 'Yoan', 'Alexandra', 'Estelle', 'Alexandre', 'Anthony']
-const HEAD_END = 'Laetitia' // bout de table, à droite
-// Le tour continue de droite à gauche en bas ; rendu ici de gauche à droite.
-const HEAD_BOTTOM = ['Nathan', 'Audrey', 'Frédéric', 'Roxane', 'Allan', 'Nelly', 'Yannis', 'Jean-Christophe', 'Julie', 'Richard', 'Mathieu', 'Diane']
+// Placement nominatif : source unique dans lib/plan.ts (partagée avec /temoins).
+const HEAD_TABLE = { name: HEAD_TABLE_NAME, count: HEAD_TOP.length + HEAD_BOTTOM.length + 1 }
 const TOTAL = HEAD_TABLE.count + TABLES.reduce((n, t) => n + t.seats.length, 0)
 
-function SeatDot({ menu, size }: { menu: Menu; size: number }) {
+function SeatDot({ menu, size, ring }: { menu: Menu; size: number; ring?: boolean }) {
   return (
     <span
       title={MENU_LABELS[menu]}
@@ -70,8 +65,10 @@ function SeatDot({ menu, size }: { menu: Menu; size: number }) {
       style={{
         width: size,
         height: size,
-        background: MENU_COLORS[menu],
-        boxShadow: menu === 'classique' ? 'none' : '0 0 0 2px rgba(74,58,48,0.18)',
+        background: ring ? 'var(--or-deep)' : MENU_COLORS[menu],
+        boxShadow: ring
+          ? '0 0 0 3px rgba(168,95,68,0.35)'
+          : menu === 'classique' ? 'none' : '0 0 0 2px rgba(74,58,48,0.18)',
       }}
     />
   )
@@ -120,6 +117,21 @@ function RoundTable({ table }: { table: Table }) {
 }
 
 export default function PlanDeTablePage() {
+  // ?invite=<prénom> (lien depuis /temoins) : met la chaise du convive en
+  // évidence sur la table des mariés. Lu côté client (page statique).
+  const [invite, setInvite] = useState<string | null>(null)
+  useEffect(() => {
+    const n = new URLSearchParams(window.location.search).get('invite')
+    if (n && headPlace(n)) {
+      setInvite(n)
+      // Amène la chaise au centre de l'écran (utile surtout en mobile, où la
+      // salle défile horizontalement).
+      setTimeout(() => {
+        document.querySelector('[data-invite-seat]')?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'center' })
+      }, 350)
+    }
+  }, [])
+
   // Reveal au scroll : observe tous les .reveal et bascule .is-visible une fois.
   useEffect(() => {
     const els = Array.from(document.querySelectorAll<HTMLElement>('.reveal:not(.is-visible)'))
@@ -142,6 +154,11 @@ export default function PlanDeTablePage() {
         <p className="font-display italic" style={{ fontSize: '1.05rem', color: 'var(--nuit-soft)', margin: '.7em auto 0' }}>
           {TOTAL} convives · 12 tables · les crus de Bourgogne
         </p>
+        {invite && (
+          <p className="fade-in" style={{ marginTop: 14, fontSize: '0.82rem', color: 'var(--nuit-soft)' }}>
+            La place de <strong style={{ color: 'var(--or-deep)' }}>{invite}</strong> est marquée sur la table des mariés.
+          </p>
+        )}
         <p style={{ marginTop: 14 }}>
           <a href="/temoins" className="font-display italic" style={{ color: 'var(--or)', fontSize: '0.95rem' }}>← Retour au déroulé du jour J</a>
         </p>
@@ -165,24 +182,25 @@ export default function PlanDeTablePage() {
         <div className="overflow-x-auto no-scrollbar">
           <div className="reveal relative mx-auto" style={{ minWidth: 760, maxWidth: 860, height: 878 }}>
 
-            {/* TABLE DES MARIÉS : 12 chaises nommées de chaque côté + Laetitia
-                en bout de table à droite. Prénoms inclinés façon étiquettes. */}
-            <div className="absolute" style={{ left: '27%', width: '52%', top: 60 }}>
+            {/* TABLE DES MARIÉS (agrandie de 20 %) : 12 chaises nommées de
+                chaque côté + Laetitia en bout de table à droite. Prénoms
+                inclinés façon étiquettes ; ?invite= met une chaise en évidence. */}
+            <div className="absolute" style={{ left: '21.8%', width: '62.4%', top: 60 }}>
               <div className="relative" style={{ height: 16, margin: '0 24px' }}>
                 {HEAD_TOP.map((n, i) => (
-                  <span key={n} className="absolute" style={{ left: `${((i + 0.5) / 12) * 100}%`, top: 2 }}>
-                    <span className="absolute" style={{ transform: 'translateX(-50%)' }}><SeatDot menu="classique" size={12} /></span>
-                    <span className="font-display absolute" style={{ left: 2, bottom: 12, transform: 'rotate(-52deg)', transformOrigin: 'left bottom', whiteSpace: 'nowrap', fontSize: '0.74rem', color: 'var(--nuit-soft)' }}>{n}</span>
+                  <span key={n} className="absolute" style={{ left: `${((i + 0.5) / 12) * 100}%`, top: 2 }} {...(invite === n ? { 'data-invite-seat': true } : {})}>
+                    <span className="absolute" style={{ transform: 'translateX(-50%)' }}><SeatDot menu="classique" size={12} ring={invite === n} /></span>
+                    <span className="font-display absolute" style={{ left: 2, bottom: 12, transform: 'rotate(-52deg)', transformOrigin: 'left bottom', whiteSpace: 'nowrap', fontSize: invite === n ? '0.82rem' : '0.74rem', fontWeight: invite === n ? 700 : 400, color: invite === n ? 'var(--or-deep)' : 'var(--nuit-soft)' }}>{n}</span>
                   </span>
                 ))}
               </div>
-              <span className="absolute" style={{ right: -19, top: '50%', transform: 'translateY(-50%)' }}>
-                <SeatDot menu="classique" size={12} />
-                <span className="font-display absolute" style={{ left: 18, top: '50%', transform: 'translateY(-50%)', whiteSpace: 'nowrap', fontSize: '0.74rem', color: 'var(--nuit-soft)' }}>{HEAD_END}</span>
+              <span className="absolute" style={{ right: -19, top: '50%', transform: 'translateY(-50%)' }} {...(invite === HEAD_END ? { 'data-invite-seat': true } : {})}>
+                <SeatDot menu="classique" size={12} ring={invite === HEAD_END} />
+                <span className="font-display absolute" style={{ left: 18, top: '50%', transform: 'translateY(-50%)', whiteSpace: 'nowrap', fontSize: invite === HEAD_END ? '0.82rem' : '0.74rem', fontWeight: invite === HEAD_END ? 700 : 400, color: invite === HEAD_END ? 'var(--or-deep)' : 'var(--nuit-soft)' }}>{HEAD_END}</span>
               </span>
               <div
                 className="flex flex-col items-center justify-center text-center"
-                style={{ minHeight: 84, borderRadius: 8, background: 'var(--or)', padding: '14px 20px', marginTop: 7 }}
+                style={{ minHeight: 101, borderRadius: 8, background: 'var(--or)', padding: '14px 20px', marginTop: 7 }}
               >
                 <span className="uppercase" style={{ fontSize: '0.56rem', letterSpacing: '0.3em', color: 'rgba(251,246,236,0.85)', fontWeight: 600 }}>Table des mariés</span>
                 <span className="font-display" style={{ fontSize: '1.5rem', fontWeight: 500, color: '#FBF6EC', lineHeight: 1.15, marginTop: 3 }}>{HEAD_TABLE.name}</span>
@@ -190,9 +208,9 @@ export default function PlanDeTablePage() {
               </div>
               <div className="relative" style={{ height: 16, margin: '7px 24px 0' }}>
                 {HEAD_BOTTOM.map((n, i) => (
-                  <span key={n} className="absolute" style={{ left: `${((i + 0.5) / 12) * 100}%`, top: 2 }}>
-                    <span className="absolute" style={{ transform: 'translateX(-50%)' }}><SeatDot menu="classique" size={12} /></span>
-                    <span className="font-display absolute" style={{ right: 2, top: 12, transform: 'rotate(-52deg)', transformOrigin: 'right top', whiteSpace: 'nowrap', fontSize: '0.74rem', color: 'var(--nuit-soft)' }}>{n}</span>
+                  <span key={n} className="absolute" style={{ left: `${((i + 0.5) / 12) * 100}%`, top: 2 }} {...(invite === n ? { 'data-invite-seat': true } : {})}>
+                    <span className="absolute" style={{ transform: 'translateX(-50%)' }}><SeatDot menu="classique" size={12} ring={invite === n} /></span>
+                    <span className="font-display absolute" style={{ right: 2, top: 12, transform: 'rotate(-52deg)', transformOrigin: 'right top', whiteSpace: 'nowrap', fontSize: invite === n ? '0.82rem' : '0.74rem', fontWeight: invite === n ? 700 : 400, color: invite === n ? 'var(--or-deep)' : 'var(--nuit-soft)' }}>{n}</span>
                   </span>
                 ))}
               </div>

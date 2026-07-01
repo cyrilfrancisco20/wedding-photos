@@ -9,6 +9,7 @@
 import { useEffect, useState } from 'react'
 import { Seal } from '@/app/components/Seal'
 import { COUPLE, WEDDING } from '@/lib/wedding'
+import { HEAD_TABLE_NAME, headPlace, planNameFor } from '@/lib/plan'
 
 type Row = {
   t: string
@@ -214,6 +215,22 @@ export default function TemoinsPage() {
           <Chip key={n} label={n} active={sel === n} onClick={() => setSel(sel === n ? null : n)} />
         ))}
       </div>
+
+      {/* PLACE AU DÎNER du témoin sélectionné (source : lib/plan.ts). */}
+      {sel && (() => {
+        const planName = planNameFor(sel)
+        const place = headPlace(planName)
+        if (!place) return null
+        const voisins = place.between.length === 2
+          ? `entre ${place.between[0]} et ${place.between[1]}`
+          : place.between.length === 1 ? `à côté de ${place.between[0]}` : ''
+        return (
+          <div key={sel} className="fade-in text-center" style={{ padding: '16px 24px 0', fontSize: '0.84rem', color: 'var(--nuit-soft)', lineHeight: 1.6 }}>
+            Votre place au dîner : <span className="font-display italic" style={{ color: 'var(--nuit)', fontSize: '1rem' }}>{HEAD_TABLE_NAME}</span> (table des mariés), {voisins}.{' '}
+            <a href={`/plan-de-table?invite=${encodeURIComponent(planName)}`} className="font-display italic" style={{ color: 'var(--or-deep)', whiteSpace: 'nowrap' }}>Voir sur le plan →</a>
+          </div>
+        )
+      })()}
 
       {/* TIMELINE */}
       <div className="mx-auto" style={{ maxWidth: 720, padding: '40px 20px 72px' }}>
