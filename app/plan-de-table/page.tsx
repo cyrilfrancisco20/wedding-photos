@@ -158,11 +158,14 @@ export default function PlanDeTablePage() {
         <div className="overflow-x-auto no-scrollbar">
           <div className="reveal relative mx-auto" style={{ minWidth: 760, maxWidth: 860, height: 758 }}>
 
-            {/* TABLE DES MARIÉS */}
+            {/* TABLE DES MARIÉS : 12 chaises de chaque côté + 1 en bout de table à droite. */}
             <div className="absolute" style={{ left: '27%', width: '52%', top: 6 }}>
               <div className="flex justify-around" style={{ padding: '0 24px', marginBottom: 7 }}>
-                {Array.from({ length: 13 }).map((_, i) => <SeatDot key={i} menu="classique" size={12} />)}
+                {Array.from({ length: 12 }).map((_, i) => <SeatDot key={i} menu="classique" size={12} />)}
               </div>
+              <span className="absolute" style={{ right: -19, top: '50%', transform: 'translateY(-50%)' }}>
+                <SeatDot menu="classique" size={12} />
+              </span>
               <div
                 className="flex flex-col items-center justify-center text-center"
                 style={{ minHeight: 84, borderRadius: 8, background: 'var(--or)', padding: '14px 20px' }}
