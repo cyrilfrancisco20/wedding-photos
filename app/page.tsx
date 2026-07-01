@@ -58,6 +58,10 @@ export default function GuestPage() {
       {/* HÉRO plein cadre : le faire-part porte déjà prénoms + date. */}
       <section className="relative overflow-hidden" style={{ height: '64vh', minHeight: 420 }}>
         <img src="/accueil/hero.png" alt="Morgane & Cyril" className="mq-zoom absolute inset-0 w-full h-full object-cover" />
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{ background: 'radial-gradient(ellipse at center, rgba(20,13,8,0.2) 0%, rgba(20,13,8,0.6) 100%), linear-gradient(180deg, rgba(20,13,8,0.5), rgba(20,13,8,0.36) 45%, rgba(20,13,8,0.6))' }}
+        />
         <div className="absolute inset-x-0 bottom-0 pointer-events-none" style={{ height: '30%', background: 'linear-gradient(to top, rgba(40,25,18,0.42), transparent)' }} />
         <div className="absolute flex items-center gap-2.5 pointer-events-none" style={{ left: 20, top: 16 }}>
           <Seal size={30} />

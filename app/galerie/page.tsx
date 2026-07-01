@@ -104,7 +104,10 @@ export default function GaleriePage() {
       {/* Cover : même hero que l'accueil en fond (zoom lent), entrée orchestrée au chargement */}
       <section className="relative overflow-hidden flex flex-col items-center justify-end text-center px-6" style={{ minHeight: '88vh', paddingBottom: 96 }}>
         <img src="/accueil/hero.png" alt="" aria-hidden="true" className="mq-zoom absolute inset-0 w-full h-full object-cover" />
-        <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(23,16,10,0.6), rgba(23,16,10,0.46) 45%, rgba(23,16,10,0.68))' }} />
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{ background: 'radial-gradient(ellipse at center, rgba(20,13,8,0.25) 0%, rgba(20,13,8,0.62) 100%), linear-gradient(180deg, rgba(20,13,8,0.55), rgba(20,13,8,0.42) 45%, rgba(20,13,8,0.7))' }}
+        />
         <div className="thread absolute" style={{ top: '12%', width: 1, height: 90, background: 'var(--or)', opacity: 0.55 }} aria-hidden="true" />
         <div className="absolute flex items-center gap-2.5 pointer-events-none" style={{ left: 20, top: 16 }}>
           <Seal size={30} />
