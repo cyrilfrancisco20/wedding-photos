@@ -97,6 +97,21 @@ body {
 .gal-a .glass { background: rgba(247, 242, 233, 0.85); }
 
 /* ====================================================================
+   Projection « Variante A sombre » — même logique de scope que .gal-a.
+   On GARDE le grand écran sombre (les photos ressortent au vidéoproj)
+   mais on réaligne l'or froid (#B8924A) et le bleu-noir (#10151F) sur le
+   terra chaud de la charte (accueil/galerie). Scopé sur le <div> racine
+   de /projection, n'affecte rien d'autre.
+   ==================================================================== */
+.proj-a {
+  --nuit-scene: #17100A;                    /* quasi-noir chaud (espresso) */
+  --or: #CE9264;                            /* or terra chaud, lisible sur sombre */
+  --or-deep: #C77B5E;                       /* terra pour les libellés */
+  --ivoire: #F7F2E9;                        /* crème aligné Variante A */
+  --filet-nuit: rgba(206, 146, 100, 0.30);  /* hairlines terra sur sombre */
+}
+
+/* ====================================================================
    Projection cinéma — la photo ne reste jamais immobile, jamais sur du
    noir mort. Pur habillage : aucune incidence sur le flux/planning.
    ==================================================================== */

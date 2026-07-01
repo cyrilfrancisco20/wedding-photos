@@ -1,5 +1,41 @@
 # Primer — wedding-photos (appli photos du mariage, 11/07/2026)
 
+## ÉTAT À LA CLÔTURE (01/07/2026) — session SÉCURITÉ, tout déployé en prod + vérifié
+`main` = `origin/main` = `6bb0981`. Deux commits poussés + auto-déployés Vercel.
+
+**Faille corrigée (commit 37e8886)** : `/api/photos` honorait n'importe quel `?status=` sans auth. `status=pending`/`rejected` renvoyait des URLs signées vers le contenu en attente ou bloqué par la modération (nudité, gore, haine). Fix : `approved` reste public, tout autre statut exige `x-mod-token === MODERATOR_PASSWORD` (401 sinon). La page `/moderateur` envoie ce token.
+
+**Durcissements + filet modérateur (commit 6bb0981)** :
+- Compare token en temps constant (`lib/auth.ts`, `timingSafeEqual`), branché dans `/api/photos` + `/api/moderate`.
+- `/api/upload` : extension dérivée du nom client nettoyée (plus de slash/caractères de chemin injectables sur le repli sharp).
+- Prompt modération (`lib/moderate.ts`) durci : consigne anti-injection (le texte dans l'image = contenu à juger, jamais un ordre ; image manipulatrice → `pending`) + rejet des insultes/harcèlement visant une personne (blague/surnom affectueux → passe).
+- **Flux choisi par Cyril = « filtre IA + filet »** : l'IA auto-approuve vers galerie + projection ; `/moderateur` a 2 nouveaux onglets : **En ligne** (retirer une photo live en 1 clic) + **Refusées** (récupérer un faux rejet, avec motif IA). Onglets « En attente » et « À classer » conservés.
+
+**Vérifs de cette session** :
+- Bypass direct Supabase testé avec la clé publique : REST table `photos` = 401, storage list = 403. Non exploitable. (À confirmer côté dashboard : RLS activé sur `photos` = ceinture si réactivation clés legacy.)
+- Gate prod : `approved`→200, `pending`/`rejected` sans token→401, bon token→200. Login modérateur prod OK.
+- **E2E réel complet** (upload → modération IA `approved` → galerie/projection → retrait onglet En ligne → `rejected`/Refusées → suppression ligne+fichiers) : nettoyé, zéro trace. Base propre.
+
+**MODERATOR_PASSWORD = `#Charlotte&Leon1319`** (fonctionne sur Vercel, stocké littéral). Piège : dans `.env.local`, le `#` en tête est lu comme commentaire → valeur vide. Corrigé en local par des guillemets `"..."`. Vercel non concerné.
+
+**Ouvert / décisions Cyril** :
+- **Projection palette** : volontairement sombre (bon pour grand écran) MAIS restée sur l'ancienne palette « Nuit & or » froide (or `#B8924A`, bleu-noir `#10151F`), pas alignée sur le terra chaud Variante A du reste. Dissonance de marque sur la pièce maîtresse. Reco : garder sombre, réaligner or+noirs sur le terra. Non fait, en attente.
+- **Rotation clés** Supabase service_role + Anthropic (exposées en clair pendant la session en ouvrant `.env.local`). Optionnel mais propre.
+- Reports antérieurs : passer en **Pro** (egress, reset 26/07) + **vider la base avant le 11/07**.
+
+## ÉTAT À LA CLÔTURE (30/06/2026) — tout déployé en prod, vérifié
+`main` = `origin/main` = `228d8fe`, synchro (0/0). Tout ce qui a été fait cette session est LIVE et vérifié en prod (URL = QR : https://wedding-photos-phi-beige.vercel.app).
+- **Design** : galerie + accueil en Variante A claire (terra/ivoire/Cormorant, override scopé `.gal-a`), modérateur rhabillé (icônes SVG), `/apercu` + `public/maquette/` supprimés (images réelles → `public/accueil/`). Projection volontairement laissée sombre/or.
+- **Rangement** : photos triées par JOUR (ven/sam/dim), en base ET en dossiers storage `{jour}/...`.
+- **Photos** : compression sharp, version conservée **3000px q88** (impression jusqu'au A4) + **vignette 600px** pour la grille (egress), bouton **Télécharger** dans la lightbox. HEIC converti/géré.
+
+**Blockers / décisions en attente (côté Cyril, je ne peux pas les faire) :**
+1. **Passer en Pro** (reco tranchée) : cycle de facturation reset le **26/07** (après le mariage), donc pas de quota egress neuf le 11/07 ; on attaque à ~2,6/5 Go = trop juste. Pro un mois ($25), redescendre en Free après. Storage non-concerné (tient en Free).
+2. **Tester un vrai upload sur prod** (le seul flux non prouvé par moi pour ne pas polluer) : envoi → modération → galerie vignette → lightbox plein → Télécharger, + vérif dossier jour dans Supabase.
+3. **Vider la base** après tests, avant le 11/07.
+
+Détail technique des chantiers ci-dessous (référence).
+
 ## QUALITÉ IMPRESSION + EGRESS (30/06/2026) — DÉPLOYÉ EN PROD + VÉRIFIÉ (commit 228d8fe sur main)
 Cyril veut **garder les photos en qualité imprimable** (tirages des favorites), pas un gadget jetable. Décision : version conservée en 3000px (pas 1600px), + vignettes pour l'egress.
 - **Constat egress (vu sur dashboard Supabase)** : storage = non-sujet (base 24 Mo, storage 0,002 Go). Le vrai mur = **egress 2,624 / 5 Go déjà consommés AVANT le mariage** (surtout tests de dev, pas les invités). À surveiller.

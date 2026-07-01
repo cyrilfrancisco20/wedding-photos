@@ -91,7 +91,7 @@ export default function ProjectionPage() {
       ? 'À tout de suite'
       : `En attente des premières photos · ${DAY_LABELS[currentDay]}`
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-7 select-none" style={{ background: 'var(--nuit-scene)' }}>
+      <div className="proj-a min-h-screen flex flex-col items-center justify-center gap-7 select-none" style={{ background: 'var(--nuit-scene)' }}>
         <span className="drift"><Seal size={108} /></span>
         <div className="flex flex-col items-center gap-3">
           <span className="font-display" style={{ color: 'var(--ivoire)', fontSize: '2.1rem', letterSpacing: '0.05em' }}>{COUPLE}</span>
@@ -107,7 +107,7 @@ export default function ProjectionPage() {
 
   return (
     <div
-      className="min-h-screen relative overflow-hidden select-none"
+      className="proj-a min-h-screen relative overflow-hidden select-none"
       style={{ background: 'var(--nuit-scene)' }}
       onClick={() => { setVisible(false); setTimeout(() => { setIndex((i) => (i + 1) % playlist.length); setVisible(true) }, 300) }}
     >
@@ -132,9 +132,9 @@ export default function ProjectionPage() {
       </div>
 
       {/* Vignette cinéma + dégradé bas pour la lisibilité du bas-de-cadre. */}
-      <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at center, transparent 48%, rgba(8,11,17,0.6) 100%)' }} />
-      <div className="absolute inset-x-0 bottom-0 pointer-events-none" style={{ height: '34%', background: 'linear-gradient(to top, rgba(8,11,17,0.82), transparent)' }} />
-      <div className="absolute inset-x-0 top-0 pointer-events-none" style={{ height: '16%', background: 'linear-gradient(to bottom, rgba(8,11,17,0.5), transparent)' }} />
+      <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at center, transparent 48%, rgba(16,10,5,0.6) 100%)' }} />
+      <div className="absolute inset-x-0 bottom-0 pointer-events-none" style={{ height: '34%', background: 'linear-gradient(to top, rgba(16,10,5,0.82), transparent)' }} />
+      <div className="absolute inset-x-0 top-0 pointer-events-none" style={{ height: '16%', background: 'linear-gradient(to bottom, rgba(16,10,5,0.5), transparent)' }} />
 
       {/* Signature persistante : le couple, en haut. Ne suit pas le fondu des photos. */}
       <div className="absolute flex items-center gap-3 pointer-events-none" style={{ left: 40, top: 30 }}>
