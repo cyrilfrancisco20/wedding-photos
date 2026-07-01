@@ -43,8 +43,10 @@ export default function ModerateurPage() {
 
   async function loadPhotos() {
     setLoading(true)
+    // 'pending' est protégé côté serveur : on envoie le token modérateur.
+    // 'approved' reste public, pas besoin de header.
     const [pending, classer] = await Promise.all([
-      fetch('/api/photos?status=pending').then((r) => r.json()),
+      fetch('/api/photos?status=pending', { headers: { 'x-mod-token': token } }).then((r) => r.json()),
       fetch(`/api/photos?status=approved&moment=${UNSORTED}`).then((r) => r.json()),
     ])
     const pendingArr: Photo[] = Array.isArray(pending) ? pending : []
