@@ -133,7 +133,7 @@ export default function PlanDeTablePage() {
         <p className="uppercase" style={{ fontSize: '0.6rem', letterSpacing: '0.34em', color: 'var(--or)', fontWeight: 600, margin: 0 }}>{COUPLE}</p>
         <h1 className="font-display" style={{ fontWeight: 500, fontSize: 'clamp(2.1rem, 6vw, 2.8rem)', lineHeight: 1.05, margin: '.3em 0 0' }}>Le plan de table</h1>
         <p className="font-display italic" style={{ fontSize: '1.05rem', color: 'var(--nuit-soft)', margin: '.7em auto 0' }}>
-          {TOTAL} convives · 12 tables · les climats de Bourgogne
+          {TOTAL} convives · 12 tables · les crus de Bourgogne
         </p>
         <p style={{ marginTop: 14 }}>
           <a href="/temoins" className="font-display italic" style={{ color: 'var(--or)', fontSize: '0.95rem' }}>← Retour au déroulé du jour J</a>
