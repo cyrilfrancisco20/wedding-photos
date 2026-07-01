@@ -3,7 +3,9 @@
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import Image from 'next/image'
 import { DAY_ORDER, DAY_LABELS, UNSORTED, ALL_BUCKET_LABELS, type Day, type Bucket } from '@/lib/schedule'
+import { COUPLE } from '@/lib/wedding'
 import { demoPhotos } from '@/lib/demoPhotos'
+import { Seal } from '@/app/components/Seal'
 
 type Photo = { id: string; url: string; thumbUrl?: string | null; moment: Bucket | null; taken_at: string | null; created_at: string }
 type Tab = Day | typeof UNSORTED
@@ -100,10 +102,14 @@ export default function GaleriePage() {
     <main className="gal-a" style={{ background: 'var(--ivoire)' }}>
 
       {/* Cover : même hero que l'accueil en fond (zoom lent), entrée orchestrée au chargement */}
-      <section className="relative overflow-hidden flex flex-col items-center justify-center text-center px-6" style={{ minHeight: '88vh' }}>
+      <section className="relative overflow-hidden flex flex-col items-center justify-end text-center px-6" style={{ minHeight: '88vh', paddingBottom: 96 }}>
         <img src="/accueil/hero.png" alt="" aria-hidden="true" className="mq-zoom absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(23,16,10,0.6), rgba(23,16,10,0.46) 45%, rgba(23,16,10,0.68))' }} />
         <div className="thread absolute" style={{ top: '12%', width: 1, height: 90, background: 'var(--or)', opacity: 0.55 }} aria-hidden="true" />
+        <div className="absolute flex items-center gap-2.5 pointer-events-none" style={{ left: 20, top: 16 }}>
+          <Seal size={30} />
+          <span className="font-display" style={{ color: 'rgba(251,246,236,0.82)', fontSize: '0.92rem', letterSpacing: '0.04em', textShadow: '0 2px 10px rgba(0,0,0,0.4)' }}>{COUPLE}</span>
+        </div>
         <p className="cover-rise font-display italic" style={{ color: 'rgba(251,246,236,0.92)', fontSize: 'clamp(1.3rem, 4vw, 1.7rem)', textShadow: '0 2px 14px rgba(0,0,0,0.5)', animationDelay: '0.3s' }}>
           Le fil de la journée, photo après photo.
         </p>
