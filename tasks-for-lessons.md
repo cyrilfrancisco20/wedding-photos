@@ -25,3 +25,15 @@ Format : RÈGLE / POURQUOI / FAIRE / NE PAS FAIRE
 - POURQUOI : plusieurs allers-retours perdus à diagnostiquer des `pending` qui n'étaient qu'un manque de clé sur la preview, et à démêler preview/prod qui écrivent dans la même base.
 - FAIRE : soit tester directement sur la cible, soit donner à la preview les mêmes env vars ; toujours identifier par quelle URL/déploiement passe la donnée (le `moment=null` vs `a-classer` a servi de marqueur pour distinguer ancien code/prod de nouveau code/preview).
 - NE PAS FAIRE : interpréter un échec de preview comme un problème de prod ; supposer que preview et prod ont la même config.
+
+## 2026-07-01 — Une valeur `.env` qui commence par `#` est lue comme un commentaire
+- RÈGLE : dans un fichier `.env`, une valeur non quotée dont le 1er caractère est `#` est parsée comme chaîne VIDE (le `#` démarre un commentaire). Prouvé avec `MODERATOR_PASSWORD=#Charlotte&Leon1319` → `@next/env` renvoyait `""` → login modérateur cassé en local.
+- POURQUOI : le mot de passe local était vide sans erreur visible, la gate rejetait tout token. Pire : divergence local/prod, car Vercel (saisie dashboard) stocke la valeur LITTÉRALEMENT, sans parsing dotenv → même mot de passe qui marche en prod et échoue en local. Piège silencieux.
+- FAIRE : quoter toute valeur `.env` contenant `#`, `&`, espaces (`MODERATOR_PASSWORD="#Charlotte&Leon1319"`) ; vérifier la valeur réellement chargée (`loadEnvConfig`) plutôt que le contenu brut du fichier ; préférer un secret sans caractère spécial en tête.
+- NE PAS FAIRE : supposer que `.env.local` et l'env Vercel parsent pareil ; conclure « le mot de passe est bon » sans tester le chemin auth positif.
+
+## 2026-07-01 — Vérifier le chemin de l'asset avant de conclure « pas déployé »
+- RÈGLE : avant de sonder une prod en boucle pour détecter un déploiement, valider que le motif de détection trouve réellement quelque chose. Next 16/Turbopack sert le CSS sous `/_next/static/chunks/*.css`, PAS `/_next/static/css/`. Mon grep sur `/css/` retournait vide → la boucle a annoncé « ancien build » 20 fois (~4 min) alors que la nouvelle palette était en ligne depuis le début.
+- POURQUOI : un signal négatif issu d'une méthode de détection non validée n'est pas une preuve d'absence. J'ai fait perdre du temps sur un faux « pas encore déployé ».
+- FAIRE : d'abord inspecter le HTML réel pour trouver le vrai chemin des assets, tester le motif sur un cas connu, puis lancer le polling ; si « rien trouvé », soupçonner la sonde avant la cible.
+- NE PAS FAIRE : boucler sur un `curl | grep` dont on n'a pas confirmé qu'il matche quoi que ce soit.

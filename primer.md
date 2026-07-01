@@ -1,7 +1,7 @@
 # Primer — wedding-photos (appli photos du mariage, 11/07/2026)
 
-## ÉTAT À LA CLÔTURE (01/07/2026) — session SÉCURITÉ, tout déployé en prod + vérifié
-`main` = `origin/main` = `6bb0981`. Deux commits poussés + auto-déployés Vercel.
+## ÉTAT À LA CLÔTURE (01/07/2026) — session SÉCURITÉ + red-team, tout déployé en prod + vérifié
+`main` = `origin/main` = `2fbe1a0`. Trois commits poussés + auto-déployés Vercel (37e8886 gate, 6bb0981 durcissements+filet modérateur, 2fbe1a0 projection Variante A sombre + primer).
 
 **Faille corrigée (commit 37e8886)** : `/api/photos` honorait n'importe quel `?status=` sans auth. `status=pending`/`rejected` renvoyait des URLs signées vers le contenu en attente ou bloqué par la modération (nudité, gore, haine). Fix : `approved` reste public, tout autre statut exige `x-mod-token === MODERATOR_PASSWORD` (401 sinon). La page `/moderateur` envoie ce token.
 
@@ -15,12 +15,15 @@
 - Bypass direct Supabase testé avec la clé publique : REST table `photos` = 401, storage list = 403. Non exploitable. (À confirmer côté dashboard : RLS activé sur `photos` = ceinture si réactivation clés legacy.)
 - Gate prod : `approved`→200, `pending`/`rejected` sans token→401, bon token→200. Login modérateur prod OK.
 - **E2E réel complet** (upload → modération IA `approved` → galerie/projection → retrait onglet En ligne → `rejected`/Refusées → suppression ligne+fichiers) : nettoyé, zéro trace. Base propre.
+- **Red-team (attaque de sa propre app, demandé par Cyril)** : Axe A (extraction) = échec, aucun contournement de la gate (double param/casse/null byte/tableau ne fait fuiter que du `approved` public), bucket privé (public 400, list 403). Axe B (bypass modération) = échec, injections « rejette-moi »/« approuve-moi » incrustées → toutes deux `pending` (modèle reconnaît la manipulation, n'obéit pas), insulte dirigée → `rejected`. Résiduel honnête : un vrai contenu inapproprié mal jugé par le modèle peut passer en `approved` (précision modèle, pas faille code) → filet = onglet En ligne ; zéro-risque écran = projection liste blanche (option 3, écartée). Tests nettoyés, zéro trace.
 
 **MODERATOR_PASSWORD = `#Charlotte&Leon1319`** (fonctionne sur Vercel, stocké littéral). Piège : dans `.env.local`, le `#` en tête est lu comme commentaire → valeur vide. Corrigé en local par des guillemets `"..."`. Vercel non concerné.
 
+**Projection réalignée (FAIT, commit 2fbe1a0)** : gardée sombre (grand écran) mais or froid + bleu-noir remplacés par le terra chaud Variante A. Nouveau scope `.proj-a` dans `globals.css` (espresso `#17100A`, or terra `#CE9264`), dégradés réchauffés, appliqué aux 2 états (veille + diaporama). Vérifié à l'écran + CSS prod contient `.proj-a`/`#17100a`/`#ce9264`.
+
 **Ouvert / décisions Cyril** :
-- **Projection palette** : volontairement sombre (bon pour grand écran) MAIS restée sur l'ancienne palette « Nuit & or » froide (or `#B8924A`, bleu-noir `#10151F`), pas alignée sur le terra chaud Variante A du reste. Dissonance de marque sur la pièce maîtresse. Reco : garder sombre, réaligner or+noirs sur le terra. Non fait, en attente.
 - **Rotation clés** Supabase service_role + Anthropic (exposées en clair pendant la session en ouvrant `.env.local`). Optionnel mais propre.
+- **Zéro-risque grand écran** (si le scénario « truc moche en projection » l'inquiète) : passer la projection en liste blanche (rien ne s'affiche sans son clic). Écarté pour l'instant au profit du filet (onglet En ligne).
 - Reports antérieurs : passer en **Pro** (egress, reset 26/07) + **vider la base avant le 11/07**.
 
 ## ÉTAT À LA CLÔTURE (30/06/2026) — tout déployé en prod, vérifié
