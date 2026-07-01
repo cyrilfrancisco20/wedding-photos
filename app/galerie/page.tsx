@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import Image from 'next/image'
 import { DAY_ORDER, DAY_LABELS, UNSORTED, ALL_BUCKET_LABELS, type Day, type Bucket } from '@/lib/schedule'
-import { WEDDING, COUPLE } from '@/lib/wedding'
 import { demoPhotos } from '@/lib/demoPhotos'
 
 type Photo = { id: string; url: string; thumbUrl?: string | null; moment: Bucket | null; taken_at: string | null; created_at: string }
@@ -105,25 +104,7 @@ export default function GaleriePage() {
         <img src="/accueil/hero.png" alt="" aria-hidden="true" className="mq-zoom absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(23,16,10,0.6), rgba(23,16,10,0.46) 45%, rgba(23,16,10,0.68))' }} />
         <div className="thread absolute" style={{ top: '12%', width: 1, height: 90, background: 'var(--or)', opacity: 0.55 }} aria-hidden="true" />
-        <div
-          className="glass cover-rise mb-7 flex items-center justify-center rounded-full"
-          style={{ width: 104, height: 104, border: '1px solid var(--or)', animationDelay: '0.15s' }}
-        >
-          <span className="font-display flex items-baseline" style={{ color: 'var(--or-deep)', fontSize: '2.5rem', letterSpacing: '0.02em' }}>
-            {WEDDING.initials[0]}
-            <span className="font-display italic" style={{ fontSize: '1.5rem', margin: '0 3px', color: 'var(--or)' }}>&amp;</span>
-            {WEDDING.initials[1]}
-          </span>
-        </div>
-        <h1 className="cover-rise font-display" style={{ color: '#FBF6EC', fontWeight: 500, lineHeight: 1.05, fontSize: 'clamp(2.6rem, 9vw, 4.5rem)', textShadow: '0 4px 22px rgba(0,0,0,0.55)', animationDelay: '0.3s' }}>
-          {WEDDING.name1}
-          <span className="font-display italic" style={{ color: 'var(--or)', fontWeight: 400 }}> &amp; </span>
-          {WEDDING.name2}
-        </h1>
-        <p className="cover-rise mt-4 uppercase" style={{ color: 'rgba(251,246,236,0.82)', fontSize: 'clamp(0.7rem, 2vw, 0.82rem)', letterSpacing: '0.32em', textShadow: '0 2px 12px rgba(0,0,0,0.5)', animationDelay: '0.45s' }}>
-          {WEDDING.dateLabel}
-        </p>
-        <p className="cover-rise font-display italic mt-5" style={{ color: 'rgba(251,246,236,0.88)', fontSize: 'clamp(1.05rem, 3vw, 1.35rem)', textShadow: '0 2px 14px rgba(0,0,0,0.5)', animationDelay: '0.58s' }}>
+        <p className="cover-rise font-display italic" style={{ color: 'rgba(251,246,236,0.92)', fontSize: 'clamp(1.3rem, 4vw, 1.7rem)', textShadow: '0 2px 14px rgba(0,0,0,0.5)', animationDelay: '0.3s' }}>
           Le fil de la journée, photo après photo.
         </p>
         <div className="cover-rise absolute flex flex-col items-center gap-2" style={{ bottom: 28, color: 'rgba(251,246,236,0.75)', textShadow: '0 2px 10px rgba(0,0,0,0.5)', animationDelay: '0.85s' }}>
