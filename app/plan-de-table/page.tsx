@@ -32,31 +32,27 @@ const seats = (n: number, specials: Menu[] = []): Menu[] => [
   ...Array<Menu>(n - specials.length).fill('classique'),
 ]
 
-type Table = { name: string; seats: Menu[] }
+type Table = { name: string; seats: Menu[]; x: number; y: number }
 
-// Rangées fidèles au plan de la salle.
-const ROWS: Table[][] = [
-  [
-    { name: 'Clos de Vougeot', seats: seats(10) },
-    { name: 'Pommard', seats: seats(10, ['enceinte']) },
-    { name: 'Nuits-Saint-Georges', seats: seats(9) },
-    { name: 'Saint-Aubin', seats: seats(10, ['vege', 'vege', 'vege', 'vegan']) },
-  ],
-  [
-    { name: 'Montrachet', seats: seats(10) },
-    { name: 'Musigny', seats: seats(7) },
-    { name: 'Vosne-Romanée', seats: seats(10) },
-  ],
-  [
-    { name: 'Meursault', seats: seats(10) },
-    { name: 'Volnay', seats: seats(9) },
-    { name: 'Aloxe-Corton', seats: seats(10, ['enceinte']) },
-    { name: 'Mercurey', seats: seats(9) },
-  ],
+// Positions FIDÈLES au plan validé (aménagement réel, diffusé aux prestataires) :
+// x = centre en % de la largeur de la salle, y = centre en px sur le canevas.
+// Rangées 1 et 3 alignées en colonnes, rangée du milieu décalée d'une demi-table.
+const TABLES: Table[] = [
+  { name: 'Clos de Vougeot', x: 12.7, y: 260, seats: seats(10) },
+  { name: 'Pommard', x: 36.4, y: 260, seats: seats(10, ['enceinte']) },
+  { name: 'Nuits-Saint-Georges', x: 61.8, y: 260, seats: seats(9) },
+  { name: 'Saint-Aubin', x: 85, y: 260, seats: seats(10, ['vege', 'vege', 'vege', 'vegan']) },
+  { name: 'Montrachet', x: 24.9, y: 465, seats: seats(10) },
+  { name: 'Musigny', x: 50.3, y: 465, seats: seats(7) },
+  { name: 'Vosne-Romanée', x: 73.4, y: 465, seats: seats(10) },
+  { name: 'Meursault', x: 11.6, y: 670, seats: seats(10) },
+  { name: 'Volnay', x: 35.8, y: 670, seats: seats(9) },
+  { name: 'Aloxe-Corton', x: 61.3, y: 670, seats: seats(10, ['enceinte']) },
+  { name: 'Mercurey', x: 83.8, y: 670, seats: seats(9) },
 ]
 
 const HEAD_TABLE = { name: 'Romanée-Conti', count: 25 }
-const TOTAL = HEAD_TABLE.count + ROWS.flat().reduce((n, t) => n + t.seats.length, 0)
+const TOTAL = HEAD_TABLE.count + TABLES.reduce((n, t) => n + t.seats.length, 0)
 
 function SeatDot({ menu, size }: { menu: Menu; size: number }) {
   return (
@@ -156,33 +152,44 @@ export default function PlanDeTablePage() {
 
       <div className="mx-auto" style={{ maxWidth: 860, padding: '30px 10px 72px' }}>
 
-        {/* TABLE DES MARIÉS */}
-        <div className="reveal mx-auto" style={{ maxWidth: 640, marginBottom: 40 }}>
-          <div className="flex justify-around" style={{ padding: '0 26px', marginBottom: 7 }}>
-            {Array.from({ length: 13 }).map((_, i) => <SeatDot key={i} menu="classique" size={13} />)}
-          </div>
-          <div
-            className="flex flex-col items-center justify-center text-center"
-            style={{ minHeight: 84, borderRadius: 8, background: 'var(--or)', padding: '14px 20px' }}
-          >
-            <span className="uppercase" style={{ fontSize: '0.56rem', letterSpacing: '0.3em', color: 'rgba(251,246,236,0.85)', fontWeight: 600 }}>Table des mariés</span>
-            <span className="font-display" style={{ fontSize: '1.5rem', fontWeight: 500, color: '#FBF6EC', lineHeight: 1.15, marginTop: 3 }}>{HEAD_TABLE.name}</span>
-            <span style={{ fontSize: '0.66rem', color: 'rgba(251,246,236,0.85)', marginTop: 3, letterSpacing: '0.04em' }}>{HEAD_TABLE.count} convives</span>
-          </div>
-          <div className="flex justify-around" style={{ padding: '0 26px', marginTop: 7 }}>
-            {Array.from({ length: 12 }).map((_, i) => <SeatDot key={i} menu="classique" size={13} />)}
+        {/* LA SALLE : canevas à positions fixes, la géométrie ne se recompose
+            jamais (c'est l'aménagement réel). Sur petit écran, défilement
+            horizontal plutôt que réempilement des tables. */}
+        <div className="overflow-x-auto no-scrollbar">
+          <div className="reveal relative mx-auto" style={{ minWidth: 760, maxWidth: 860, height: 758 }}>
+
+            {/* TABLE DES MARIÉS */}
+            <div className="absolute" style={{ left: '27%', width: '52%', top: 6 }}>
+              <div className="flex justify-around" style={{ padding: '0 24px', marginBottom: 7 }}>
+                {Array.from({ length: 13 }).map((_, i) => <SeatDot key={i} menu="classique" size={12} />)}
+              </div>
+              <div
+                className="flex flex-col items-center justify-center text-center"
+                style={{ minHeight: 84, borderRadius: 8, background: 'var(--or)', padding: '14px 20px' }}
+              >
+                <span className="uppercase" style={{ fontSize: '0.56rem', letterSpacing: '0.3em', color: 'rgba(251,246,236,0.85)', fontWeight: 600 }}>Table des mariés</span>
+                <span className="font-display" style={{ fontSize: '1.5rem', fontWeight: 500, color: '#FBF6EC', lineHeight: 1.15, marginTop: 3 }}>{HEAD_TABLE.name}</span>
+                <span style={{ fontSize: '0.66rem', color: 'rgba(251,246,236,0.85)', marginTop: 3, letterSpacing: '0.04em' }}>{HEAD_TABLE.count} convives</span>
+              </div>
+              <div className="flex justify-around" style={{ padding: '0 24px', marginTop: 7 }}>
+                {Array.from({ length: 12 }).map((_, i) => <SeatDot key={i} menu="classique" size={12} />)}
+              </div>
+            </div>
+
+            {/* TABLES RONDES */}
+            {TABLES.map((t) => (
+              <div key={t.name} className="absolute" style={{ left: `${t.x}%`, top: t.y, transform: 'translate(-50%, -50%)' }}>
+                <RoundTable table={t} />
+              </div>
+            ))}
           </div>
         </div>
-
-        {/* TABLES RONDES, rangée par rangée comme dans la salle */}
-        {ROWS.map((row, i) => (
-          <div key={i} className="reveal flex flex-wrap justify-center" style={{ gap: '4px 14px', marginBottom: 10 }}>
-            {row.map((t) => <RoundTable key={t.name} table={t} />)}
-          </div>
-        ))}
+        <p className="md:hidden text-center" style={{ color: 'var(--ciel)', fontSize: '0.7rem', marginTop: 2 }}>
+          Faites défiler horizontalement pour parcourir la salle.
+        </p>
 
         <p className="text-center" style={{ color: 'var(--ciel)', fontSize: '0.72rem', lineHeight: 1.6, maxWidth: '30rem', margin: '28px auto 0' }}>
-          La disposition reprend celle de la salle, vue depuis l&apos;entrée.
+          La disposition reprend l&apos;aménagement réel de la salle, vue depuis l&apos;entrée.
           Les pastilles colorées signalent les menus spéciaux pour le service.
         </p>
       </div>
