@@ -139,8 +139,9 @@ export default function GuestPage() {
         <input ref={camRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => handleFiles(e.target.files)} />
         <input ref={albRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => handleFiles(e.target.files)} />
 
-        <div style={{ marginTop: 40 }}>
+        <div className="flex flex-col items-center" style={{ gap: 10, marginTop: 40 }}>
           <a href="/galerie" className="font-display italic" style={{ color: C.terra, fontSize: '1.05rem' }}>Voir la galerie du mariage →</a>
+          <a href="/couchages" className="font-display italic" style={{ color: C.terra, fontSize: '1.05rem' }}>Vous dormez sur place ? Voir votre chambre →</a>
         </div>
 
         {APP_URL && (
