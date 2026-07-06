@@ -2,7 +2,8 @@
 
 // Plan de table du dîner, refait à la charte « Variante A » (mêmes tokens que
 // la galerie via .gal-a) à partir du plan Pages de Cyril. Disposition fidèle à
-// la salle : table des mariés en haut, puis 3 rangées de tables rondes.
+// la salle : table des mariés pivotée à la verticale et calée à droite (avec
+// dégagement de circulation), puis 3 rangées de tables rondes à gauche.
 // Les pastilles autour des tables = un siège par convive ; les couleurs
 // signalent les menus spéciaux (femme enceinte, végétarien, vegan).
 
@@ -15,7 +16,7 @@ type Menu = 'classique' | 'enceinte' | 'vege' | 'vegan'
 
 const MENU_COLORS: Record<Menu, string> = {
   classique: '#D9B29A', // terra pâle, discret : le cas général
-  enceinte: '#E0A63C', // ambre
+  enceinte: '#6E8AA3', // bleu ardoise, distinct des tons terra/or du reste de la charte
   vege: '#8E6E9E', // prune
   vegan: '#7E9770', // sauge profonde
 }
@@ -35,21 +36,27 @@ const seats = (n: number, specials: Menu[] = []): Menu[] => [
 
 type Table = { name: string; seats: Menu[]; x: number; y: number }
 
+// Largeur de référence pour convertir les % historiques des tables rondes en
+// pixels fixes : garantit qu'elles ne bougent jamais, même si le canevas
+// s'élargit à droite pour loger la table des mariés (aménagement réel,
+// diffusé aux prestataires — on ne réagence jamais ces tables-là).
+const ROOM_REF_WIDTH = 860
+
 // Positions FIDÈLES au plan validé (aménagement réel, diffusé aux prestataires) :
 // x = centre en % de la largeur de la salle, y = centre en px sur le canevas.
 // Rangées 1 et 3 alignées en colonnes, rangée du milieu décalée d'une demi-table.
 const TABLES: Table[] = [
-  { name: 'Clos de Vougeot', x: 12.7, y: 380, seats: seats(10) },
-  { name: 'Pommard', x: 36.4, y: 380, seats: seats(10, ['enceinte']) },
+  { name: 'Clos de Vougeot', x: 83.8, y: 790, seats: seats(10) },
+  { name: 'Pommard', x: 73.4, y: 585, seats: seats(10, ['enceinte']) },
   { name: 'Nuits-Saint-Georges', x: 61.8, y: 380, seats: seats(9) },
   { name: 'Saint-Aubin', x: 85, y: 380, seats: seats(10, ['vege', 'vege', 'vege', 'vegan']) },
   { name: 'Montrachet', x: 24.9, y: 585, seats: seats(10) },
   { name: 'Musigny', x: 50.3, y: 585, seats: seats(7) },
-  { name: 'Vosne-Romanée', x: 73.4, y: 585, seats: seats(10) },
+  { name: 'Vosne-Romanée', x: 36.4, y: 380, seats: seats(10) },
   { name: 'Meursault', x: 11.6, y: 790, seats: seats(10) },
   { name: 'Volnay', x: 35.8, y: 790, seats: seats(9) },
   { name: 'Aloxe-Corton', x: 61.3, y: 790, seats: seats(10, ['enceinte']) },
-  { name: 'Mercurey', x: 83.8, y: 790, seats: seats(9) },
+  { name: 'Mercurey', x: 12.7, y: 380, seats: seats(9) },
 ]
 
 // Placement nominatif : source unique dans lib/plan.ts (partagée avec /temoins).
@@ -182,18 +189,26 @@ export default function PlanDeTablePage() {
         ))}
       </div>
 
-      <div className="mx-auto" style={{ maxWidth: 860, padding: '30px 10px 72px' }}>
+      <div className="mx-auto" style={{ maxWidth: 1090, padding: '30px 10px 72px' }}>
 
         {/* LA SALLE : canevas à positions fixes, la géométrie ne se recompose
             jamais (c'est l'aménagement réel). Sur petit écran, défilement
             horizontal plutôt que réempilement des tables. */}
         <div className="overflow-x-auto no-scrollbar">
-          <div className="reveal relative mx-auto" style={{ minWidth: 760, maxWidth: 860, height: 878 }}>
+          <div className="reveal relative mx-auto" style={{ minWidth: 1050, maxWidth: 1050, height: 878 }}>
 
-            {/* TABLE DES MARIÉS (agrandie de 20 %) : 12 chaises nommées de
-                chaque côté + Laetitia en bout de table à droite. Prénoms
-                inclinés façon étiquettes ; ?invite= met une chaise en évidence. */}
-            <div data-head-table className="absolute" style={{ left: '21.8%', width: '62.4%', top: 60 }}>
+            {/* TABLE DES MARIÉS : pivotée à 90° (sens horaire) et calée à
+                droite de la salle, avec un dégagement de circulation par
+                rapport aux tables rondes — aménagement réel, confirmé par
+                Cyril. Rotation d'un seul bloc rigide (table + convives) :
+                l'ancien bord du haut (Guillaume→Anthony) devient le bord
+                DROIT, l'ancien bord du bas (Nathan→Diane) devient le bord
+                GAUCHE, Laetitia (bout de table) atterrit en BAS. Dimensions
+                (537×147) ; centrée verticalement sur les 3 rangées de tables
+                rondes (y=585, la rangée du milieu), pas sur tout le canevas.
+                transform-origin par défaut (centre) donc la rotation ne
+                change rien à ces calculs. */}
+            <div data-head-table className="absolute" style={{ left: 675, top: 511.5, width: 537, height: 147, transform: 'rotate(90deg)' }}>
               <div className="relative" style={{ height: 16, margin: '0 24px' }}>
                 {HEAD_TOP.map((n, i) => (
                   <span key={n} className="absolute" style={{ left: `${((i + 0.5) / 12) * 100}%`, top: 2 }} {...(invite === n ? { 'data-invite-seat': true } : {})}>
@@ -204,7 +219,7 @@ export default function PlanDeTablePage() {
               </div>
               <span className="absolute" style={{ right: -19, top: '50%', transform: 'translateY(-50%)' }} {...(invite === HEAD_END ? { 'data-invite-seat': true } : {})}>
                 <SeatDot menu="classique" size={12} ring={invite === HEAD_END} />
-                <span className="font-display absolute" style={{ left: 18, top: '50%', transform: 'translateY(-50%)', whiteSpace: 'nowrap', fontSize: invite === HEAD_END ? '0.82rem' : '0.74rem', fontWeight: invite === HEAD_END ? 700 : 400, color: invite === HEAD_END ? 'var(--or-deep)' : 'var(--nuit-soft)' }}>{HEAD_END}</span>
+                <span className="font-display absolute" style={{ left: 18, top: '50%', transform: 'translateY(-50%) rotate(-52deg)', transformOrigin: 'left center', whiteSpace: 'nowrap', fontSize: invite === HEAD_END ? '0.82rem' : '0.74rem', fontWeight: invite === HEAD_END ? 700 : 400, color: invite === HEAD_END ? 'var(--or-deep)' : 'var(--nuit-soft)' }}>{HEAD_END}</span>
               </span>
               <div
                 className="flex flex-col items-center justify-center text-center"
@@ -226,19 +241,14 @@ export default function PlanDeTablePage() {
 
             {/* TABLES RONDES */}
             {TABLES.map((t) => (
-              <div key={t.name} className="absolute" style={{ left: `${t.x}%`, top: t.y, transform: 'translate(-50%, -50%)' }}>
+              <div key={t.name} className="absolute" style={{ left: (t.x / 100) * ROOM_REF_WIDTH, top: t.y, transform: 'translate(-50%, -50%)' }}>
                 <RoundTable table={t} />
               </div>
             ))}
           </div>
         </div>
-        <p className="md:hidden text-center" style={{ color: 'var(--ciel)', fontSize: '0.7rem', marginTop: 2 }}>
+        <p className="text-center" style={{ color: 'var(--ciel)', fontSize: '0.7rem', marginTop: 2 }}>
           Faites défiler horizontalement pour parcourir la salle.
-        </p>
-
-        <p className="text-center" style={{ color: 'var(--ciel)', fontSize: '0.72rem', lineHeight: 1.6, maxWidth: '30rem', margin: '28px auto 0' }}>
-          La disposition reprend l&apos;aménagement réel de la salle, vue depuis l&apos;entrée.
-          Les pastilles colorées signalent les menus spéciaux pour le service.
         </p>
       </div>
 
