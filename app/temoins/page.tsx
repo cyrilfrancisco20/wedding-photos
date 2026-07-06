@@ -68,7 +68,7 @@ const SECTIONS: Section[] = [
       { t: '16h24', bold: true, label: 'Morgane entre, accompagnée par Allan', dur: '~1 min 45', sub: "15 secondes d'intro musicale, puis Morgane remonte l'allée au bras d'Allan.", music: 'Duomo / Sebastien Pecznik · With Or Without You' },
       { t: '16h26', label: "Morgane rejoint Cyril. Allan va s'asseoir. Moment ensemble (~2 min)." },
       { t: '16h28', label: 'Fin de With Or Without You. Tout le monde se rassoit.' },
-      { t: '16h28', bold: true, label: 'Yannis · introduction du couple', dur: '3 min', verify: 'À vérifier avec Yannis' },
+      { t: '16h28', bold: true, label: 'Yannis · introduction du couple', dur: '3 min' },
       { t: '16h31', label: 'Passage du micro aux témoins de Morgane', dur: '1 min' },
       { t: '16h32', bold: true, label: 'Témoins de Morgane · discours 1', dur: '5 min max' },
       { t: '16h37', label: 'Passage du micro à Carole', dur: '1 min' },
@@ -102,7 +102,7 @@ const SECTIONS: Section[] = [
     dot: '#D9A38E',
     rows: [
       { t: '17h48', bold: true, label: 'Set n°1 · groupe jazz + Ibtisseme' },
-      { t: '18h40', bold: true, label: 'Set n°2 · groupe jazz seul', dur: '54 min', verify: 'Raccourci de 6 min (60→54) pour garder les photos à 20h00 pile malgré le discours ajouté' },
+      { t: '18h40', bold: true, label: 'Set n°2 · groupe jazz seul', dur: '54 min' },
       { t: '19h34', bold: true, label: 'Fin du jazz · DJ Stéphane prend le relais' },
       { t: '19h35', label: 'DJ Stéphane annonce la danse des mariés' },
       { t: '19h40', bold: true, label: 'Danse des mariés en extérieur', music: 'Oscar Anton · Monde Nouveau' },
