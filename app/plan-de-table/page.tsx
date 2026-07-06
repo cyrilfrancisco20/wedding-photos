@@ -129,6 +129,14 @@ export default function PlanDeTablePage() {
       setTimeout(() => {
         document.querySelector('[data-invite-seat]')?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'center' })
       }, 350)
+    } else {
+      // Visite directe (sans ?invite=) : sur mobile, la salle défile
+      // horizontalement et démarre calée à gauche — la table des mariés,
+      // décalée à 21,8 % du canevas, apparaît alors coupée à droite de
+      // l'écran. On centre le cadre sur la table des mariés au chargement.
+      setTimeout(() => {
+        document.querySelector('[data-head-table]')?.scrollIntoView({ inline: 'center', block: 'nearest' })
+      }, 50)
     }
   }, [])
 
@@ -185,7 +193,7 @@ export default function PlanDeTablePage() {
             {/* TABLE DES MARIÉS (agrandie de 20 %) : 12 chaises nommées de
                 chaque côté + Laetitia en bout de table à droite. Prénoms
                 inclinés façon étiquettes ; ?invite= met une chaise en évidence. */}
-            <div className="absolute" style={{ left: '21.8%', width: '62.4%', top: 60 }}>
+            <div data-head-table className="absolute" style={{ left: '21.8%', width: '62.4%', top: 60 }}>
               <div className="relative" style={{ height: 16, margin: '0 24px' }}>
                 {HEAD_TOP.map((n, i) => (
                   <span key={n} className="absolute" style={{ left: `${((i + 0.5) / 12) * 100}%`, top: 2 }} {...(invite === n ? { 'data-invite-seat': true } : {})}>
