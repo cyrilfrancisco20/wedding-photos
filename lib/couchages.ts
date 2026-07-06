@@ -80,7 +80,7 @@ export const BUILDINGS: Building[] = [
         name: 'Chambre 4 lits', floor: '1er étage', beds: '4 lits simples',
         people: [{ name: 'Yannis' }, { name: 'Richard' }, { name: 'Mathieu.D' }, { name: 'Diane' }],
       },
-      { name: 'Chambre du rez-de-chaussée', floor: 'RDC', beds: 'Lits simples', people: [{ name: 'Audrey' }, { name: 'Nathan' }] },
+      { name: 'Chambre du rez-de-chaussée', floor: 'RDC', beds: 'Lits simples', people: [{ name: 'Audrey', nights: 'sam' }, { name: 'Nathan', nights: 'sam' }] },
     ],
   },
   {
@@ -93,7 +93,7 @@ export const BUILDINGS: Building[] = [
     photoFocus: 'center 72%',
     rooms: [
       { name: 'Chambre 1', floor: 'RDC', beds: 'Lit double', people: [{ name: 'Murielle' }, { name: 'Lionel.C' }] },
-      { name: 'Chambre 2', floor: 'RDC', beds: 'Lit double', people: [{ name: 'Benoit.P' }, { name: 'Chloé' }] },
+      { name: 'Chambre 2', floor: 'RDC', beds: 'Lit double', people: [{ name: 'Benoit.P', nights: 'sam' }, { name: 'Chloé', nights: 'sam' }] },
       {
         name: 'Chambre lit double + simple', floor: 'RDC', beds: '1 lit double + 1 lit simple',
         people: [{ name: 'Joseph' }, { name: 'Véronique.F' }, { name: 'Mémé', nights: 'ven' }],
