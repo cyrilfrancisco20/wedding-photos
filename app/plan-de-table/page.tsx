@@ -189,13 +189,19 @@ export default function PlanDeTablePage() {
         ))}
       </div>
 
-      <div className="mx-auto" style={{ maxWidth: 1090, padding: '30px 10px 72px' }}>
+      <div className="mx-auto" style={{ maxWidth: 1090, padding: '14px 10px 60px' }}>
 
         {/* LA SALLE : canevas à positions fixes, la géométrie ne se recompose
-            jamais (c'est l'aménagement réel). Sur petit écran, défilement
-            horizontal plutôt que réempilement des tables. */}
-        <div className="overflow-x-auto no-scrollbar">
-          <div className="reveal relative mx-auto" style={{ minWidth: 1050, maxWidth: 1050, height: 878 }}>
+            jamais (c'est l'aménagement réel, les x/y ci-dessous restent
+            ceux du plan validé). Depuis la rotation de la table des mariés
+            à droite, les tables ne commencent qu'à y≈301 sur un canevas de
+            878 : ça laissait un grand vide en haut. Fix : un cadre plus
+            court (607) qui rogne ce vide, la salle elle-même est juste
+            remontée dedans (marginTop négatif) — aucune coordonnée de
+            table n'est modifiée. Sur petit écran, défilement horizontal
+            plutôt que réempilement des tables. */}
+        <div className="overflow-x-auto no-scrollbar" style={{ height: 607, overflowY: 'hidden' }}>
+          <div className="reveal relative mx-auto" style={{ minWidth: 1050, maxWidth: 1050, height: 878, marginTop: -271 }}>
 
             {/* TABLE DES MARIÉS : pivotée à 90° (sens horaire) et calée à
                 droite de la salle, avec un dégagement de circulation par
@@ -247,13 +253,10 @@ export default function PlanDeTablePage() {
             ))}
           </div>
         </div>
-        <p className="text-center" style={{ color: 'var(--ciel)', fontSize: '0.7rem', marginTop: 2 }}>
-          Faites défiler horizontalement pour parcourir la salle.
-        </p>
       </div>
 
       {/* PIED : monogramme, comme sur l'accueil. */}
-      <footer className="text-center" style={{ background: '#DDE3D2', padding: '46px 30px' }}>
+      <footer className="flex flex-col items-center text-center" style={{ background: '#DDE3D2', padding: '46px 30px' }}>
         <Seal size={56} />
         <p className="font-display italic" style={{ fontSize: '1.15rem', color: 'var(--nuit)', marginTop: 14 }}>{WEDDING.dateLabel}</p>
       </footer>
