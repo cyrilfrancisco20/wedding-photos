@@ -61,7 +61,7 @@ export const ROUND_TABLES: RoundTableInfo[] = [
 // Menus spéciaux (demande Cyril du 07/07/2026, orthographe "Catherine"
 // confirmée par Cyril le 07/07/2026 après vérification).
 export type SpecialMenu = 'enceinte' | 'vege' | 'vegan'
-export const SPECIAL_MENUS: Record<string, SpecialMenu> = {
+export const SPECIAL_MENUS: Record<string, SpecialMenu | undefined> = {
   'Gaëlle': 'enceinte',
   'Nathalie': 'enceinte',
   'Kévin': 'vege',

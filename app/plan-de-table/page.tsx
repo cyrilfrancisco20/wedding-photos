@@ -107,6 +107,7 @@ function RoundTable({ table }: { table: Table }) {
       {table.guests.map((name, i) => {
         const a = -Math.PI / 2 + (i * 2 * Math.PI) / table.guests.length
         const menu = SPECIAL_MENUS[name] ?? 'classique'
+        const onRight = Math.cos(a) >= 0
         return (
           <span
             key={name}
@@ -117,6 +118,25 @@ function RoundTable({ table }: { table: Table }) {
             }}
           >
             <SeatDot menu={menu} size={DOT} label={name} />
+            {/* Menu spécial : prénom affiché en clair (pas seulement au survol,
+                invisible au tactile) — seuls les 6 convives à régime spécial
+                ont un label visible, les classiques restent des pastilles nues. */}
+            {menu !== 'classique' && (
+              <span
+                className="absolute font-display"
+                style={{
+                  top: DOT / 2,
+                  [onRight ? 'left' : 'right']: DOT + 4,
+                  transform: 'translateY(-50%)',
+                  whiteSpace: 'nowrap',
+                  fontSize: '0.66rem',
+                  fontWeight: 600,
+                  color: MENU_COLORS[menu],
+                }}
+              >
+                {name}
+              </span>
+            )}
           </span>
         )
       })}
