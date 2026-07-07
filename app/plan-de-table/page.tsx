@@ -37,8 +37,9 @@ const SCALE = 0.933
 const ROOM_LEFT = 80
 const ROOM_TOP = 20
 const ROOM_WIDTH_CM = 800
-const ROOM_LENGTH_CM = 2500
+const ROOM_LENGTH_CM = 3100
 const PASSAGE_CM = 300
+const DANCE_FLOOR_CM = 600
 
 type Table = { name: string; diameter: 150 | 180; guests: string[]; x: number; y: number }
 
@@ -235,6 +236,14 @@ export default function PlanDeTablePage() {
               style={{ left: ROOM_LEFT, top: ROOM_TOP, width: Math.round(ROOM_WIDTH_CM * SCALE), height: Math.round(PASSAGE_CM * SCALE), background: 'var(--ivoire-raise)', borderBottom: '1px dashed var(--filet)' }}
             >
               <span style={{ fontSize: '0.7rem', color: 'var(--ciel)', letterSpacing: '0.04em' }}>Passage cuisines / WC</span>
+            </div>
+
+            {/* Piste de danse : 6 m en bas, pleine largeur. */}
+            <div
+              className="absolute flex items-center justify-center text-center"
+              style={{ left: ROOM_LEFT, top: ROOM_TOP + Math.round((ROOM_LENGTH_CM - DANCE_FLOOR_CM) * SCALE), width: Math.round(ROOM_WIDTH_CM * SCALE), height: Math.round(DANCE_FLOOR_CM * SCALE), background: 'var(--ivoire-raise)', borderTop: '1px dashed var(--filet)' }}
+            >
+              <span style={{ fontSize: '0.7rem', color: 'var(--ciel)', letterSpacing: '0.04em' }}>Piste de danse</span>
             </div>
 
             {/* TABLE DES MARIÉS : dans la longueur, mur de droite, recul 1 m.
