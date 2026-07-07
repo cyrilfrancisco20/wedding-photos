@@ -12,7 +12,7 @@
 import { useEffect, useState } from 'react'
 import { Seal } from '@/app/components/Seal'
 import { COUPLE, WEDDING } from '@/lib/wedding'
-import { HEAD_TABLE_NAME, HEAD_TOP, HEAD_END, HEAD_BOTTOM, ROUND_TABLES, headPlace } from '@/lib/plan'
+import { HEAD_TABLE_NAME, HEAD_TOP, HEAD_END, HEAD_BOTTOM, ROUND_TABLES, SPECIAL_MENUS, headPlace } from '@/lib/plan'
 
 type Menu = 'classique' | 'enceinte' | 'vege' | 'vegan'
 
@@ -29,11 +29,6 @@ const MENU_LABELS: Record<Menu, string> = {
   vege: 'Menu végétarien',
   vegan: 'Menu vegan',
 }
-
-// Menus spéciaux non reportés sur la nouvelle liste (13 tables, 07/07/2026) :
-// à reconfirmer auprès de Cyril table par table. Tout le monde en classique
-// par défaut en attendant.
-const SPECIAL_MENUS: Record<string, Menu> = {}
 
 // 1 px = 1/SCALE cm : les tables rondes sont dessinées à leur diamètre réel
 // (150 ou 180 cm), pas une taille schématique. Seules les rangées 4 et 10
