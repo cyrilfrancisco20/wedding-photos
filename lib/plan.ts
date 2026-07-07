@@ -46,7 +46,7 @@ export const ROUND_TABLES: RoundTableInfo[] = [
   { name: 'Volnay', diameter: 150, guests: ['Alexandre', 'Ludovic', 'Vincent', 'Ludivine', 'Véronique.S', 'Sebastien.D', 'Véronique.D'] },
   { name: 'Aloxe-Corton', diameter: 150, guests: ['Christine', 'Anne', 'Sylwia', 'Michaël.S', 'Julien', 'Caroline', 'David', 'Patrick'] },
   { name: 'Gevrey-Chambertin', diameter: 150, guests: ['Mélisa', 'Eddy', 'Marie', 'Leslie', 'Eugène', 'Fernande', 'Pascal', 'Paulina (Mémé)'] },
-  { name: 'Saint-Aubin', diameter: 180, guests: ['Guilhem', 'Nicolas.Bi', 'Elise', 'Nicolas.Ba', 'Laura', 'Katherine', 'Anne-Emmanuelle', 'William', 'Alexia', 'Kévin'] },
+  { name: 'Saint-Aubin', diameter: 180, guests: ['Guilhem', 'Nicolas.Bi', 'Elise', 'Nicolas.Ba', 'Laura', 'Catherine', 'Anne-Emmanuelle', 'William', 'Alexia', 'Kévin'] },
   { name: 'Vosne-Romanée', diameter: 150, guests: ['Lexane', 'Gaëlle', 'Joris', 'Marjorie', 'Emilande', 'Jérôme', 'Anthony', 'Yoann'] },
   { name: 'Clos de Vougeot', diameter: 150, guests: ['Rémy', 'Emilie', 'Jérémy', 'Madysson', 'Bastien', 'Tom', 'Laurine', 'Priscille'] },
   { name: 'Nuits-Saint-Georges', diameter: 150, guests: ['Mickael.L', 'Carole', 'Zé (Joseph)', 'Véronique', 'Florence.V', 'Antoine', 'Florence.L', 'Lionel.V'] },
@@ -58,9 +58,8 @@ export const ROUND_TABLES: RoundTableInfo[] = [
   { name: 'Montrachet', diameter: 150, guests: ['Claire', 'Etienne', 'Valentin', 'Michael.B', 'Laurent', 'Camille', 'Laëtitia.G', 'Marina'] },
 ]
 
-// Menus spéciaux (demande Cyril du 07/07/2026). "Catherine" (vegan) n'existe
-// pas telle quelle dans la liste réelle — seule "Katherine" (Saint-Aubin)
-// s'en approche, traité comme la même personne. À confirmer par Cyril.
+// Menus spéciaux (demande Cyril du 07/07/2026, orthographe "Catherine"
+// confirmée par Cyril le 07/07/2026 après vérification).
 export type SpecialMenu = 'enceinte' | 'vege' | 'vegan'
 export const SPECIAL_MENUS: Record<string, SpecialMenu> = {
   'Gaëlle': 'enceinte',
@@ -68,5 +67,5 @@ export const SPECIAL_MENUS: Record<string, SpecialMenu> = {
   'Kévin': 'vege',
   'William': 'vege',
   'Elise': 'vege',
-  'Katherine': 'vegan', // "Catherine" demandé par Cyril — nom le plus proche de la liste réelle
+  'Catherine': 'vegan',
 }
