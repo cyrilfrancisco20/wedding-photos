@@ -48,17 +48,17 @@ type Table = { name: string; diameter: 150 | 180; guests: string[]; x: number; y
 // respectés, aucune collision avec la table des mariés (cf. session).
 const ROUND_POSITIONS: Record<string, { x: number; y: number }> = {
   'Volnay': { x: ROOM_LEFT + 373, y: ROOM_TOP + 407 },
-  'Aloxe-Corton': { x: ROOM_LEFT + 187, y: ROOM_TOP + 605 },
-  'Gevrey-Chambertin': { x: ROOM_LEFT + 560, y: ROOM_TOP + 605 },
+  'Aloxe-Corton': { x: ROOM_LEFT + 163, y: ROOM_TOP + 605 },
+  'Gevrey-Chambertin': { x: ROOM_LEFT + 583, y: ROOM_TOP + 605 },
   'Saint-Aubin': { x: ROOM_LEFT + 373, y: ROOM_TOP + 818 },
-  'Vosne-Romanée': { x: ROOM_LEFT + 187, y: ROOM_TOP + 990 },
+  'Vosne-Romanée': { x: ROOM_LEFT + 163, y: ROOM_TOP + 990 },
   'Clos de Vougeot': { x: ROOM_LEFT + 373, y: ROOM_TOP + 1149 },
-  'Nuits-Saint-Georges': { x: ROOM_LEFT + 187, y: ROOM_TOP + 1308 },
+  'Nuits-Saint-Georges': { x: ROOM_LEFT + 163, y: ROOM_TOP + 1308 },
   'Musigny': { x: ROOM_LEFT + 373, y: ROOM_TOP + 1466 },
-  'Santenay': { x: ROOM_LEFT + 187, y: ROOM_TOP + 1625 },
+  'Santenay': { x: ROOM_LEFT + 163, y: ROOM_TOP + 1625 },
   'Pommard': { x: ROOM_LEFT + 373, y: ROOM_TOP + 1797 },
-  'Mercurey': { x: ROOM_LEFT + 187, y: ROOM_TOP + 2010 },
-  'Montrachet': { x: ROOM_LEFT + 640, y: ROOM_TOP + 2010 },
+  'Mercurey': { x: ROOM_LEFT + 163, y: ROOM_TOP + 2010 },
+  'Montrachet': { x: ROOM_LEFT + 583, y: ROOM_TOP + 2010 },
   'Meursault': { x: ROOM_LEFT + 373, y: ROOM_TOP + 2208 },
 }
 
