@@ -95,17 +95,51 @@ function SeatDot({ menu, size, ring, label }: { menu: Menu; size: number; ring?:
   )
 }
 
-// Table ronde : tous les prénoms affichés dans la pastille elle-même (liste
-// à 2 colonnes), pas en rayons autour du cercle — les tables sont trop
-// proches les unes des autres (aménagement réel) pour que des labels sortant
-// du cercle ne chevauchent pas la table voisine. Couleur du prénom = menu.
+// Table ronde : une pastille par convive en cercle (couleur = menu), prénom
+// écrit à côté — même logique que la table des mariés. Le prénom part à
+// gauche ou à droite selon le côté du cercle où tombe le siège.
 function RoundTable({ table }: { table: Table }) {
   const OUTER = Math.round(table.diameter * SCALE)
-  const CIRCLE = Math.round(OUTER * 0.94)
+  const CIRCLE = Math.round(OUTER * 0.64)
+  const R = CIRCLE / 2 + 15
+  const DOT = 11
   return (
     <div className="relative shrink-0" style={{ width: OUTER, height: OUTER }}>
+      {table.guests.map((name, i) => {
+        const a = -Math.PI / 2 + (i * 2 * Math.PI) / table.guests.length
+        const menu = SPECIAL_MENUS[name] ?? 'classique'
+        const title = menu === 'classique' ? name : `${name} — ${MENU_LABELS[menu]}`
+        const onRight = Math.cos(a) >= 0
+        return (
+          <span
+            key={name}
+            className="absolute"
+            style={{
+              left: OUTER / 2 + R * Math.cos(a) - DOT / 2,
+              top: OUTER / 2 + R * Math.sin(a) - DOT / 2,
+            }}
+          >
+            <SeatDot menu={menu} size={DOT} />
+            <span
+              className="absolute font-display"
+              title={title}
+              style={{
+                top: DOT / 2,
+                [onRight ? 'left' : 'right']: DOT + 3,
+                transform: 'translateY(-50%)',
+                whiteSpace: 'nowrap',
+                fontSize: '0.58rem',
+                fontWeight: menu === 'classique' ? 400 : 700,
+                color: menu === 'classique' ? 'var(--nuit-soft)' : MENU_COLORS[menu],
+              }}
+            >
+              {name}
+            </span>
+          </span>
+        )
+      })}
       <div
-        className="absolute flex flex-col items-center rounded-full"
+        className="absolute flex flex-col items-center justify-center text-center rounded-full"
         style={{
           left: (OUTER - CIRCLE) / 2,
           top: (OUTER - CIRCLE) / 2,
@@ -113,36 +147,11 @@ function RoundTable({ table }: { table: Table }) {
           height: CIRCLE,
           background: 'var(--ivoire-raise)',
           border: '1px solid var(--filet)',
-          padding: '11px 9px 0',
-          textAlign: 'center',
+          padding: '0 10px',
         }}
       >
-        <span className="font-display" style={{ fontSize: '0.8rem', fontWeight: 600, lineHeight: 1.1, color: 'var(--nuit)' }}>{table.name}</span>
-        <span style={{ fontSize: '0.52rem', color: 'var(--ciel)', margin: '2px 0 5px', letterSpacing: '0.03em' }}>{table.guests.length} convives</span>
-        <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', columnGap: 5, rowGap: 1, width: '100%' }}>
-          {table.guests.map((name) => {
-            const menu = SPECIAL_MENUS[name] ?? 'classique'
-            const title = menu === 'classique' ? name : `${name} — ${MENU_LABELS[menu]}`
-            return (
-              <span
-                key={name}
-                title={title}
-                aria-label={title}
-                style={{
-                  fontSize: '0.56rem',
-                  lineHeight: 1.3,
-                  color: menu === 'classique' ? 'var(--nuit-soft)' : MENU_COLORS[menu],
-                  fontWeight: menu === 'classique' ? 400 : 700,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {name}
-              </span>
-            )
-          })}
-        </div>
+        <span className="font-display" style={{ fontSize: '0.92rem', fontWeight: 600, lineHeight: 1.15, color: 'var(--nuit)' }}>{table.name}</span>
+        <span style={{ fontSize: '0.62rem', color: 'var(--ciel)', marginTop: 3, letterSpacing: '0.04em' }}>{table.guests.length} convives</span>
       </div>
     </div>
   )
