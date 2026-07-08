@@ -93,10 +93,10 @@ export const BUILDINGS: Building[] = [
     photoFocus: 'center 72%',
     rooms: [
       { name: 'Chambre 1', floor: 'RDC', beds: 'Lit double', people: [{ name: 'Murielle' }, { name: 'Lionel.C' }] },
-      { name: 'Chambre 2', floor: 'RDC', beds: 'Lit double', people: [{ name: 'Benoit.P', nights: 'sam' }, { name: 'Chloé', nights: 'sam' }] },
+      { name: 'Chambre 2', floor: 'RDC', beds: 'Lit double', people: [{ name: 'Benoit.P', nights: 'sam' }, { name: 'Chloé', nights: 'sam' }, { name: 'Mémé', nights: 'ven' }] },
       {
         name: 'Chambre lit double + simple', floor: 'RDC', beds: '1 lit double + 1 lit simple',
-        people: [{ name: 'Joseph' }, { name: 'Véronique.F' }, { name: 'Mémé', nights: 'ven' }],
+        people: [{ name: 'Joseph' }, { name: 'Véronique.F' }],
       },
       {
         name: 'Chambre 2 lits superposés', floor: '1er étage', beds: '2 lits superposés',
