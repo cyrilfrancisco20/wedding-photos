@@ -18,8 +18,13 @@ const roomKey = (buildingId: string, roomName: string) => `${buildingId}::${room
 function NightBadge({ nights }: { nights: Person['nights'] }) {
   if (!nights) return null
   const label = nights === 'ven' ? 'vend. seult' : 'sam. seult'
+  // Deux couleurs distinctes pour repérer d'un coup d'œil qui alterne les nuits :
+  // vendredi en sauge, samedi en terra (charte du domaine).
+  const tint = nights === 'ven'
+    ? { color: '#5B7150', border: '1px solid rgba(126,151,112,0.55)', background: 'rgba(126,151,112,0.14)' }
+    : { color: 'var(--or-deep)', border: '1px solid var(--filet)', background: 'rgba(199,123,94,0.07)' }
   return (
-    <span style={{ marginLeft: 5, padding: '1px 6px', borderRadius: 999, fontSize: '0.58rem', fontWeight: 600, letterSpacing: '0.03em', border: '1px solid var(--filet)', color: 'var(--or-deep)', background: 'rgba(199,123,94,0.07)', whiteSpace: 'nowrap' }}>
+    <span style={{ marginLeft: 5, padding: '1px 6px', borderRadius: 999, fontSize: '0.58rem', fontWeight: 600, letterSpacing: '0.03em', whiteSpace: 'nowrap', ...tint }}>
       {label}
     </span>
   )
