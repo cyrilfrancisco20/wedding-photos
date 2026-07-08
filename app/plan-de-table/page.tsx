@@ -71,6 +71,43 @@ const HEAD_H = Math.round(750 * SCALE)
 const HEAD_LEFT = ROOM_LEFT + Math.round((ROOM_WIDTH_CM - 100 - 90) * SCALE)
 const HEAD_TOP_PX = ROOM_TOP + 958
 
+// Deux tables de service (~160 x 80 cm) le long du mur droit, dans la zone
+// piste de danse : fontaine de champagne + desserts. Bord droit au mur,
+// posées dans la longueur (160 cm à la verticale), empilées et centrées
+// dans la hauteur de la piste. Profondeur 80 cm supposée (buffet standard).
+const SERVICE_W = Math.round(80 * SCALE)
+const SERVICE_H = Math.round(160 * SCALE)
+const SERVICE_LEFT = ROOM_LEFT + Math.round(ROOM_WIDTH_CM * SCALE) - SERVICE_W
+const DANCE_TOP_PX = ROOM_TOP + Math.round((ROOM_LENGTH_CM - DANCE_FLOOR_CM) * SCALE)
+const SERVICE_GAP = 44
+const SERVICE_BLOCK = SERVICE_H * 2 + SERVICE_GAP
+const SERVICE_TOP = DANCE_TOP_PX + Math.round((Math.round(DANCE_FLOOR_CM * SCALE) - SERVICE_BLOCK) / 2)
+const SERVICE_TABLES = [
+  { label: 'Fontaine de champagne', top: SERVICE_TOP },
+  { label: 'Desserts', top: SERVICE_TOP + SERVICE_H + SERVICE_GAP },
+]
+
+// Zone DJ (2,50 x 2,50 m) dans l'angle bas gauche de la piste de danse,
+// contre le mur gauche et le fond de salle.
+const DJ_SIZE = Math.round(250 * SCALE)
+const DJ_LEFT = ROOM_LEFT
+const DJ_TOP = DANCE_TOP_PX + Math.round(DANCE_FLOOR_CM * SCALE) - DJ_SIZE
+
+// Haut de salle, au milieu : zone photobooth + accessoires (2 x 1 m) et un
+// tonneau (~70 cm) pour le livre d'or et l'urne. Centrés dans la largeur,
+// dans la bande haute. NB : recoupe le passage cuisines/WC marqué sans
+// mobilier — à confirmer.
+const PB_W = Math.round(200 * SCALE)
+const PB_H = Math.round(100 * SCALE)
+const BARREL_D = Math.round(70 * SCALE)
+const TOP_GROUP_GAP = 22
+const TOP_GROUP_W = PB_W + TOP_GROUP_GAP + BARREL_D
+const TOP_GROUP_LEFT = ROOM_LEFT + Math.round((ROOM_WIDTH_CM * SCALE - TOP_GROUP_W) / 2)
+const PB_LEFT = TOP_GROUP_LEFT
+const PB_TOP = ROOM_TOP
+const BARREL_LEFT = TOP_GROUP_LEFT + PB_W + TOP_GROUP_GAP
+const BARREL_TOP = ROOM_TOP
+
 const HEAD_TABLE = { name: HEAD_TABLE_NAME, count: HEAD_TOP.length + HEAD_BOTTOM.length + 1 }
 const TOTAL = HEAD_TABLE.count + TABLES.reduce((n, t) => n + t.guests.length, 0)
 
@@ -232,8 +269,8 @@ export default function PlanDeTablePage() {
 
             {/* Passage cuisines / WC : 3 m en haut, aucun mobilier. */}
             <div
-              className="absolute flex items-center justify-center text-center"
-              style={{ left: ROOM_LEFT, top: ROOM_TOP, width: Math.round(ROOM_WIDTH_CM * SCALE), height: Math.round(PASSAGE_CM * SCALE), background: 'var(--ivoire-raise)', borderBottom: '1px dashed var(--filet)' }}
+              className="absolute flex items-end justify-center text-center"
+              style={{ left: ROOM_LEFT, top: ROOM_TOP, width: Math.round(ROOM_WIDTH_CM * SCALE), height: Math.round(PASSAGE_CM * SCALE), background: 'var(--ivoire-raise)', borderBottom: '1px dashed var(--filet)', paddingBottom: 8 }}
             >
               <span style={{ fontSize: '0.7rem', color: 'var(--ciel)', letterSpacing: '0.04em' }}>Passage cuisines / WC</span>
             </div>
@@ -244,6 +281,42 @@ export default function PlanDeTablePage() {
               style={{ left: ROOM_LEFT, top: ROOM_TOP + Math.round((ROOM_LENGTH_CM - DANCE_FLOOR_CM) * SCALE), width: Math.round(ROOM_WIDTH_CM * SCALE), height: Math.round(DANCE_FLOOR_CM * SCALE), background: 'var(--ivoire-raise)', borderTop: '1px dashed var(--filet)' }}
             >
               <span style={{ fontSize: '0.7rem', color: 'var(--ciel)', letterSpacing: '0.04em' }}>Piste de danse</span>
+            </div>
+
+            {/* TABLES DE SERVICE : fontaine de champagne + desserts, ~160 x 80 cm,
+                le long du mur droit dans la zone piste de danse. */}
+            {SERVICE_TABLES.map((s) => (
+              <div
+                key={s.label}
+                className="absolute flex items-center justify-center text-center"
+                style={{ left: SERVICE_LEFT, top: s.top, width: SERVICE_W, height: SERVICE_H, background: 'var(--ivoire)', border: '1px solid var(--filet)', borderRadius: 4 }}
+              >
+                <span className="font-display" style={{ fontSize: '0.58rem', color: 'var(--nuit-soft)', letterSpacing: '0.03em', whiteSpace: 'nowrap', transform: 'rotate(-90deg)' }}>{s.label}</span>
+              </div>
+            ))}
+
+            {/* HAUT DE SALLE : photobooth + accessoires (2 x 1 m) et tonneau
+                (livre d'or / urne), centrés dans la largeur. */}
+            <div
+              className="absolute flex items-center justify-center text-center"
+              style={{ left: PB_LEFT, top: PB_TOP, width: PB_W, height: PB_H, background: 'var(--ivoire)', border: '1px solid var(--filet)', borderRadius: 4 }}
+            >
+              <span className="font-display" style={{ fontSize: '0.62rem', color: 'var(--nuit-soft)', letterSpacing: '0.03em', lineHeight: 1.3 }}>Photobooth<br />& accessoires</span>
+            </div>
+            <div
+              className="absolute flex flex-col items-center justify-center text-center"
+              title="Tonneau — livre d'or / urne"
+              style={{ left: BARREL_LEFT, top: BARREL_TOP, width: BARREL_D, height: BARREL_D, background: 'var(--ivoire)', border: '1px solid var(--filet)', borderRadius: '50%' }}
+            >
+              <span className="font-display" style={{ fontSize: '0.48rem', color: 'var(--nuit-soft)', lineHeight: 1.15 }}>Livre d'or<br />urne</span>
+            </div>
+
+            {/* ZONE DJ : angle bas gauche de la piste, 2,50 x 2,50 m. */}
+            <div
+              className="absolute flex items-center justify-center text-center"
+              style={{ left: DJ_LEFT, top: DJ_TOP, width: DJ_SIZE, height: DJ_SIZE, background: 'var(--ivoire)', border: '1px solid var(--filet)', borderRadius: 4 }}
+            >
+              <span className="font-display uppercase" style={{ fontSize: '0.66rem', letterSpacing: '0.22em', color: 'var(--nuit-soft)' }}>DJ</span>
             </div>
 
             {/* TABLE DES MARIÉS : dans la longueur, mur de droite, recul 1 m.
