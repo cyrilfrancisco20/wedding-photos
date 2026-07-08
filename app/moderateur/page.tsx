@@ -6,7 +6,7 @@ import { DAY_ORDER, UNSORTED, ALL_BUCKET_LABELS, type Bucket } from '@/lib/sched
 import type { ReactNode } from 'react'
 
 type Photo = { id: string; url: string; created_at: string; moment: Bucket | null; moderation_reason?: string | null }
-type View = 'pending' | 'enligne' | 'classer' | 'refusees'
+type View = 'pending' | 'enligne' | 'classer' | 'refusees' | 'conneries'
 
 const MOMENT_OPTIONS: Bucket[] = [...DAY_ORDER, UNSORTED]
 
@@ -32,7 +32,7 @@ export default function ModerateurPage() {
   const [view, setView] = useState<View>('pending')
   const [photos, setPhotos] = useState<Photo[]>([])
   const [loading, setLoading] = useState(false)
-  const [counts, setCounts] = useState({ pending: 0, enligne: 0, classer: 0, refusees: 0 })
+  const [counts, setCounts] = useState({ pending: 0, enligne: 0, classer: 0, refusees: 0, conneries: 0 })
 
   async function login() {
     const res = await fetch('/api/moderate', {
@@ -53,35 +53,45 @@ export default function ModerateurPage() {
     // 'pending' et 'rejected' sont protégés côté serveur : on envoie le token.
     // 'approved' (En ligne / À classer) reste public, pas besoin de header.
     const h = { headers: { 'x-mod-token': token } }
-    const [pending, approved, rejected] = await Promise.all([
+    const [pending, approved, rejected, kept] = await Promise.all([
       fetch('/api/photos?status=pending', h).then((r) => r.json()),
       fetch('/api/photos?status=approved', h).then((r) => r.json()),
       fetch('/api/photos?status=rejected', h).then((r) => r.json()),
+      fetch('/api/photos?status=kept', h).then((r) => r.json()),
     ])
     const pendingArr: Photo[] = Array.isArray(pending) ? pending : []
     const approvedArr: Photo[] = Array.isArray(approved) ? approved : []
     const rejectedArr: Photo[] = Array.isArray(rejected) ? rejected : []
+    const keptArr: Photo[] = Array.isArray(kept) ? kept : []
     // "À classer" = approuvées encore sans jour assigné.
     const classerArr = approvedArr.filter((p) => (p.moment ?? UNSORTED) === UNSORTED)
     const shown =
       view === 'pending' ? pendingArr
       : view === 'enligne' ? approvedArr
       : view === 'classer' ? classerArr
+      : view === 'conneries' ? keptArr
       : rejectedArr
     setPhotos(shown)
-    setCounts({ pending: pendingArr.length, enligne: approvedArr.length, classer: classerArr.length, refusees: rejectedArr.length })
+    setCounts({ pending: pendingArr.length, enligne: approvedArr.length, classer: classerArr.length, refusees: rejectedArr.length, conneries: keptArr.length })
     setLoading(false)
   }
 
   // Approuver / refuser / retirer / restaurer : une seule action serveur
   // (status = approved|rejected). La photo quitte la liste courante, le compteur
   // de la vue courante décrémente.
-  async function moderate(id: string, action: 'approved' | 'rejected') {
-    await fetch('/api/moderate', {
+  async function moderate(id: string, action: 'approved' | 'rejected' | 'kept') {
+    const res = await fetch('/api/moderate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, action, token }),
     })
+    // On ne retire la photo de la liste que si le serveur a confirmé : sinon la
+    // vignette « disparaît » alors que rien n'a changé en base (ex. statut refusé
+    // par la contrainte avant migration).
+    if (!res.ok) {
+      alert('Action non enregistrée (erreur serveur). La photo reste en place.')
+      return
+    }
     setPhotos((prev) => prev.filter((p) => p.id !== id))
     setCounts((c) => ({ ...c, [view]: Math.max(0, c[view] - 1) }))
   }
@@ -177,7 +187,7 @@ export default function ModerateurPage() {
         </div>
 
         <div className="flex flex-wrap gap-2 mb-6">
-          {([['pending', 'En attente', counts.pending], ['enligne', 'En ligne', counts.enligne], ['classer', 'À classer', counts.classer], ['refusees', 'Refusées', counts.refusees]] as const).map(([v, label, n]) => {
+          {([['pending', 'En attente', counts.pending], ['enligne', 'En ligne', counts.enligne], ['classer', 'À classer', counts.classer], ['conneries', 'Conneries', counts.conneries], ['refusees', 'Refusées', counts.refusees]] as const).map(([v, label, n]) => {
             const active = view === v
             return (
               <button
@@ -203,6 +213,7 @@ export default function ModerateurPage() {
               {view === 'pending' ? 'Aucune photo en attente'
                 : view === 'enligne' ? 'Aucune photo en ligne'
                 : view === 'classer' ? 'Aucune photo à classer'
+                : view === 'conneries' ? 'Aucune photo conservée'
                 : 'Aucune photo refusée'}
             </p>
           </div>
@@ -218,8 +229,9 @@ export default function ModerateurPage() {
                 <p className="px-4 pt-3 text-xs" style={{ color: C.muted }}>IA · {photo.moderation_reason}</p>
               )}
 
-              {/* Réaffectation du jour : utile partout sauf sur les refusées. */}
-              {view !== 'refusees' && (
+              {/* Réaffectation du jour : inutile sur les refusées et les conneries
+                  (jamais projetées). */}
+              {view !== 'refusees' && view !== 'conneries' && (
                 <div className="flex items-center gap-2.5 px-4 pt-3">
                   <span className="uppercase" style={{ fontSize: '0.6rem', letterSpacing: '0.2em', color: C.muted }}>Jour</span>
                   <select
@@ -236,22 +248,33 @@ export default function ModerateurPage() {
               )}
 
               {view === 'pending' && (
-                <div className="flex gap-3 p-4">
+                <div className="p-4 space-y-3">
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => moderate(photo.id, 'approved')}
+                      className="lift flex-1 flex items-center justify-center gap-2 text-sm font-medium"
+                      style={{ background: C.terra, color: '#fff', borderRadius: 12, padding: '12px 0' }}
+                    >
+                      <Icon><path d="M20 6 9 17l-5-5" /></Icon>
+                      Approuver
+                    </button>
+                    <button
+                      onClick={() => moderate(photo.id, 'rejected')}
+                      className="lift flex-1 flex items-center justify-center gap-2 text-sm font-medium"
+                      style={{ background: '#fff', color: C.red, borderRadius: 12, padding: '12px 0', border: `1px solid ${C.red}33` }}
+                    >
+                      <Icon><path d="M18 6 6 18" /><path d="m6 6 12 12" /></Icon>
+                      Refuser
+                    </button>
+                  </div>
+                  {/* Troisième sortie : gardée en base, jamais projetée ni en galerie. */}
                   <button
-                    onClick={() => moderate(photo.id, 'approved')}
-                    className="lift flex-1 flex items-center justify-center gap-2 text-sm font-medium"
-                    style={{ background: C.terra, color: '#fff', borderRadius: 12, padding: '12px 0' }}
+                    onClick={() => moderate(photo.id, 'kept')}
+                    className="lift w-full flex items-center justify-center gap-2 text-sm font-medium"
+                    style={{ background: C.sage, color: C.ink, borderRadius: 12, padding: '12px 0' }}
                   >
-                    <Icon><path d="M20 6 9 17l-5-5" /></Icon>
-                    Approuver
-                  </button>
-                  <button
-                    onClick={() => moderate(photo.id, 'rejected')}
-                    className="lift flex-1 flex items-center justify-center gap-2 text-sm font-medium"
-                    style={{ background: '#fff', color: C.red, borderRadius: 12, padding: '12px 0', border: `1px solid ${C.red}33` }}
-                  >
-                    <Icon><path d="M18 6 6 18" /><path d="m6 6 12 12" /></Icon>
-                    Refuser
+                    <Icon><rect x="3" y="4" width="18" height="4" rx="1" /><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8" /><path d="M10 12h4" /></Icon>
+                    À conserver
                   </button>
                 </div>
               )}
@@ -280,6 +303,28 @@ export default function ModerateurPage() {
                   >
                     <Icon><path d="M20 6 9 17l-5-5" /></Icon>
                     Restaurer (remettre en ligne)
+                  </button>
+                </div>
+              )}
+
+              {/* Conneries : sortir une photo conservée, vers la galerie ou la corbeille. */}
+              {view === 'conneries' && (
+                <div className="flex gap-3 p-4">
+                  <button
+                    onClick={() => moderate(photo.id, 'approved')}
+                    className="lift flex-1 flex items-center justify-center gap-2 text-sm font-medium"
+                    style={{ background: C.terra, color: '#fff', borderRadius: 12, padding: '12px 0' }}
+                  >
+                    <Icon><path d="M20 6 9 17l-5-5" /></Icon>
+                    Mettre en ligne
+                  </button>
+                  <button
+                    onClick={() => moderate(photo.id, 'rejected')}
+                    className="lift flex-1 flex items-center justify-center gap-2 text-sm font-medium"
+                    style={{ background: '#fff', color: C.red, borderRadius: 12, padding: '12px 0', border: `1px solid ${C.red}33` }}
+                  >
+                    <Icon><path d="M18 6 6 18" /><path d="m6 6 12 12" /></Icon>
+                    Refuser
                   </button>
                 </div>
               )}

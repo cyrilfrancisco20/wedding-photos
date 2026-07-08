@@ -24,7 +24,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true })
   }
 
-  if (!['approved', 'rejected'].includes(action)) {
+  // 'kept' = dossier « Conneries » : gardée en base, hors galerie et hors projection.
+  if (!['approved', 'rejected', 'kept'].includes(action)) {
     return NextResponse.json({ error: 'Action invalide' }, { status: 400 })
   }
 
