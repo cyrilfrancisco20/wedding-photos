@@ -152,10 +152,6 @@ export default function GuestPage() {
             <p className="uppercase" style={{ color: C.muted, fontSize: '0.58rem', letterSpacing: '0.24em' }}>Scannez pour partager autour de vous</p>
           </div>
         )}
-
-        <p style={{ color: C.muted, fontSize: '0.7rem', lineHeight: 1.5, maxWidth: '22rem', margin: '32px auto 0' }}>
-          Photos partagées uniquement avec les invités du mariage et supprimées sous 30 jours.
-        </p>
       </section>
 
       <footer className="text-center" style={{ background: C.sage, padding: '48px 30px' }}>
