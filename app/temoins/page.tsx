@@ -103,11 +103,11 @@ const SECTIONS: Section[] = [
     rows: [
       { t: '17h48', bold: true, label: 'Set n°1 · groupe jazz + Ibtisseme' },
       { t: '18h40', bold: true, label: 'Set n°2 · groupe jazz seul', dur: '54 min' },
-      { t: '19h34', bold: true, label: 'Fin du jazz · DJ Stéphane prend le relais' },
+      { t: '19h34', bold: true, label: 'Fin du jazz · DJ Stéphane prend le relais', names: ['Stéphane'] },
       { t: '19h35', label: 'DJ Stéphane annonce la danse des mariés' },
-      { t: '19h40', bold: true, label: 'Danse des mariés en extérieur', music: 'Oscar Anton · Monde Nouveau' },
+      { t: '19h40', bold: true, label: 'Danse des mariés en extérieur', music: 'Oscar Anton · Monde Nouveau', names: ['Stéphane'] },
       { t: '19h45', label: 'DJ Stéphane annonce le lancer de bouquet' },
-      { t: '19h50', bold: true, label: 'Lancer de bouquet', dur: '5 min', music: "Ani DiFranco · Wishin' & Hopin'" },
+      { t: '19h50', bold: true, label: 'Lancer de bouquet', dur: '5 min', music: "Ani DiFranco · Wishin' & Hopin'", names: ['Stéphane'] },
       { t: '20h00', bold: true, label: 'Photos des mariés avec Victor', dur: '25 min', sub: "Le DJ invite les convives à rejoindre la salle, sur un fond sonore des musiques de l'apéritif." },
       { t: '20h25', label: 'Retour des mariés. Transition vers la salle.', dur: '5 min' },
     ],
@@ -117,10 +117,10 @@ const SECTIONS: Section[] = [
     title: 'Repas',
     dot: '#A85F44',
     rows: [
-      { t: '20h30', bold: true, label: 'Entrée en salle · les témoins, puis les mariés', music: 'Yann Muller · Prière Païenne', names: TEMOINS },
+      { t: '20h30', bold: true, label: 'Entrée en salle · les témoins, puis les mariés', music: 'Yann Muller · Prière Païenne', names: [...TEMOINS, 'Stéphane'] },
       { t: '20h36', bold: true, label: 'Discours de remerciements · Morgane ou Cyril', sub: 'Nelly remet le micro.', names: ['Nelly'] },
-      { t: '20h40', bold: true, label: 'Rallye photos avec chaque table', music: 'The Beatles · Hey Jude' },
-      { t: '20h50', bold: true, label: 'Service du plat principal', sub: 'Mercurey Blanc + Saint-Joseph.', music: 'DJ · fond discret' },
+      { t: '20h40', bold: true, label: 'Rallye photos avec chaque table', music: 'The Beatles · Hey Jude', names: ['Stéphane'] },
+      { t: '20h50', bold: true, label: 'Service du plat principal', sub: 'Mercurey Blanc + Saint-Joseph. Fond sonore possible : playlist Spotify de Cyril « Apéritif & Repas Mariage ».', music: 'DJ · fond discret', names: ['Stéphane'] },
       { t: '22h00', bold: true, label: 'Service du fromage', sub: 'Mercurey Rouge.' },
     ],
   },
@@ -129,12 +129,12 @@ const SECTIONS: Section[] = [
     title: 'Soirée',
     dot: '#4A3A30',
     rows: [
-      { t: '22h15', bold: true, label: 'Blind test · 15 titres', dur: '~35 min', sub: 'DJ Stéphane anime.' },
-      { t: '22h50', bold: true, label: 'Annonce des 3 gagnants', sub: 'Remise des bouteilles par Morgane et Cyril.' },
-      { t: '23h00', bold: true, label: 'Fontaine de champagne · entrée en lumières', music: '20th Century Fox Intro × Daft Punk · One More Time' },
+      { t: '22h15', bold: true, label: 'Blind test · 15 titres', dur: '~35 min', sub: 'DJ Stéphane anime. Playlist Spotify de Cyril « Blindtest ».', names: ['Stéphane'] },
+      { t: '22h50', bold: true, label: 'Annonce des 3 gagnants', sub: 'Remise des bouteilles par Morgane et Cyril.', names: ['Stéphane'] },
+      { t: '23h00', bold: true, label: 'Fontaine de champagne · entrée en lumières', music: '20th Century Fox Intro × Daft Punk · One More Time', names: ['Stéphane'] },
       { t: '23h05', label: 'Champagne servi', dur: '25 min' },
-      { t: '23h30', bold: true, label: 'Ouverture de bal', sub: "S'enchaîne avec la soirée.", music: 'Raye · Where Is My Husband' },
-      { t: '23h35', bold: true, label: 'Soirée dansante', sub: "Jusqu'à 6h00.", music: 'DJ set' },
+      { t: '23h30', bold: true, label: 'Ouverture de bal', sub: "S'enchaîne avec la soirée.", music: 'Raye · Where Is My Husband', names: ['Stéphane'] },
+      { t: '23h35', bold: true, label: 'Soirée dansante', sub: "Jusqu'à 6h00.", music: 'DJ set', names: ['Stéphane'] },
     ],
   },
 ]
@@ -218,6 +218,7 @@ export default function TemoinsPage() {
         ))}
         <span aria-hidden="true" style={{ width: 1, background: 'var(--filet)', margin: '2px 2px', flexShrink: 0 }} />
         <Chip label="Thomas" active={sel === 'Thomas'} onClick={() => setSel(sel === 'Thomas' ? null : 'Thomas')} />
+        <Chip label="DJ Stéphane" active={sel === 'Stéphane'} onClick={() => setSel(sel === 'Stéphane' ? null : 'Stéphane')} />
       </div>
 
       {/* PLACE AU DÎNER du témoin sélectionné (source : lib/plan.ts). */}
