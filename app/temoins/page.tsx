@@ -120,7 +120,7 @@ const SECTIONS: Section[] = [
       { t: '20h30', bold: true, label: 'Entrée en salle · les témoins, puis les mariés', music: 'Yann Muller · Prière Païenne', names: [...TEMOINS, 'Stéphane'] },
       { t: '20h36', bold: true, label: 'Discours de remerciements · Morgane ou Cyril', sub: 'Nelly remet le micro.', names: ['Nelly'] },
       { t: '20h40', bold: true, label: 'Rallye photos avec chaque table', music: 'The Beatles · Hey Jude', names: ['Stéphane'] },
-      { t: '20h50', bold: true, label: 'Service du plat principal', sub: 'Mercurey Blanc + Saint-Joseph. Fond sonore possible : playlist Spotify de Cyril « Apéritif & Repas Mariage ».', music: 'DJ · fond discret', names: ['Stéphane'] },
+      { t: '20h50', bold: true, label: 'Service du plat principal', sub: 'Mercurey Blanc + Saint-Joseph.', music: 'DJ · fond discret (possibilité d\'utiliser la playlist Spotify de Cyril « Apéritif & Repas Mariage »)', names: ['Stéphane'] },
       { t: '22h00', bold: true, label: 'Service du fromage', sub: 'Mercurey Rouge.' },
     ],
   },
