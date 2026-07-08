@@ -61,11 +61,11 @@ const SECTIONS: Section[] = [
     title: 'Cérémonie laïque · La Mare',
     dot: '#C77B5E',
     rows: [
-      { t: '16h15', bold: true, label: "Yannis remonte l'allée et prend place au pupitre", dur: '2 min', music: 'Theo Lawrence & The Hearts · Heaven to Me' },
+      { t: '16h15', bold: true, label: "Yannis remonte l'allée et prend place au pupitre", dur: '2 min', music: 'Theo Lawrence & The Hearts · Heaven to Me', names: ['Thomas'] },
       { t: '16h17', label: "Yannis · discours d'introduction", dur: '1 min', sub: '« Mesdames et Messieurs, veuillez vous lever pour accueillir le marié, leurs témoins et leur famille »' },
-      { t: '16h20', bold: true, label: 'Procession', dur: '~3 min 10', sub: 'Départs espacés de 20 secondes, dans cet ordre :', music: 'Nina Simone · Here Comes the Sun', names: TEMOINS, proc: true },
+      { t: '16h20', bold: true, label: 'Procession', dur: '~3 min 10', sub: 'Départs espacés de 20 secondes, dans cet ordre :', music: 'Nina Simone · Here Comes the Sun', names: [...TEMOINS, 'Thomas'], proc: true },
       { t: '16h24', label: 'Yannis : « Mesdames et Messieurs, veuillez maintenant accueillir la mariée »' },
-      { t: '16h24', bold: true, label: 'Morgane entre, accompagnée par Allan', dur: '~1 min 45', sub: "15 secondes d'intro musicale, puis Morgane remonte l'allée au bras d'Allan.", music: 'Duomo / Sebastien Pecznik · With Or Without You' },
+      { t: '16h24', bold: true, label: 'Morgane entre, accompagnée par Allan', dur: '~1 min 45', sub: "15 secondes d'intro musicale, puis Morgane remonte l'allée au bras d'Allan.", music: 'Duomo / Sebastien Pecznik · With Or Without You', names: ['Thomas'] },
       { t: '16h26', label: "Morgane rejoint Cyril. Allan va s'asseoir. Moment ensemble (~2 min)." },
       { t: '16h28', label: 'Fin de With Or Without You. Tout le monde se rassoit.' },
       { t: '16h28', bold: true, label: 'Yannis · introduction du couple', dur: '3 min' },
@@ -88,10 +88,10 @@ const SECTIONS: Section[] = [
       { t: '17h22', label: 'Yannis enchaîne vers les vœux de Morgane', dur: '~1 min' },
       { t: '17h23', bold: true, label: 'Vœux de Morgane', dur: '8 min max' },
       { t: '17h31', label: 'Transition vers le consentement', dur: '~1 min' },
-      { t: '17h32', bold: true, label: 'Yannis fait le geste : Gaëlle envoie les enfants avec les alliances', music: 'Ben Mazué · 10 ans de nous' },
+      { t: '17h32', bold: true, label: 'Yannis fait le geste : Gaëlle envoie les enfants avec les alliances', music: 'Ben Mazué · 10 ans de nous', names: ['Thomas'] },
       { t: '17h37', bold: true, label: 'Les enfants arrivent · Charlotte présente les alliances' },
       { t: '17h41', bold: true, label: 'Consentement, échange des alliances & baiser' },
-      { t: '17h44', bold: true, label: "Yannis annonce la fin de la cérémonie et invite vers l'apéritif", sub: 'Thomas déclenche la machine à bulles.', music: 'Stevie Wonder · For Once In My Life' },
+      { t: '17h44', bold: true, label: "Yannis annonce la fin de la cérémonie et invite vers l'apéritif", sub: 'Thomas déclenche la machine à bulles.', music: 'Stevie Wonder · For Once In My Life', names: ['Thomas'] },
       { t: '17h45', bold: true, label: 'Yannis passe le micro à Nelly · sortie des mariés sous les bulles', names: ['Nelly'] },
       { t: '~17h46', label: "Yoan, Alexandre, Anthony & Richard déplacent l'arche vers le Photo Booth et le panneau Welcome vers la salle. Laurine, Elodie et Nelly décrochent les fleurs de l'allée et les répartissent dans les soliflores sur les tonneaux (mange-debout).", names: ['Yoan', 'Alexandre', 'Anthony', 'Richard', 'Elodie', 'Nelly'] },
     ],
@@ -216,6 +216,8 @@ export default function TemoinsPage() {
         {TEMOINS.map((n) => (
           <Chip key={n} label={n} active={sel === n} onClick={() => setSel(sel === n ? null : n)} />
         ))}
+        <span aria-hidden="true" style={{ width: 1, background: 'var(--filet)', margin: '2px 2px', flexShrink: 0 }} />
+        <Chip label="Thomas" active={sel === 'Thomas'} onClick={() => setSel(sel === 'Thomas' ? null : 'Thomas')} />
       </div>
 
       {/* PLACE AU DÎNER du témoin sélectionné (source : lib/plan.ts). */}
