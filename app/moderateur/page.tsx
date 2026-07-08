@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Image from 'next/image'
 import { DAY_ORDER, UNSORTED, ALL_BUCKET_LABELS, type Bucket } from '@/lib/schedule'
 import type { ReactNode } from 'react'
@@ -9,6 +9,13 @@ type Photo = { id: string; url: string; created_at: string; moment: Bucket | nul
 type View = 'pending' | 'enligne' | 'classer' | 'refusees'
 
 const MOMENT_OPTIONS: Bucket[] = [...DAY_ORDER, UNSORTED]
+
+// Verrouillage auto : au bout de IDLE_MS d'inactivité TOTALE (aucun geste), la
+// session est effacée et le mot de passe redemandé. Sécurise le cas « on prend
+// mon téléphone/Mac déverrouillé ». Le compteur se remet à zéro à chaque
+// interaction, donc une revue continue ne déconnecte jamais. Monter à 120_000 /
+// 180_000 si 1 min est trop court à l'usage.
+const IDLE_MS = 60_000
 
 // Charte « Variante A » claire, alignée sur l'accueil et la galerie.
 const C = { ivory: '#F7F2E9', blush: '#ECD8CF', sage: '#DDE3D2', terra: '#C77B5E', ink: '#4A3A30', muted: '#9A8470', red: '#C0584A' }
@@ -94,10 +101,34 @@ export default function ModerateurPage() {
     }
   }
 
+  const logout = useCallback(() => {
+    sessionStorage.removeItem('mod_token')
+    setAuthed(false)
+    setToken('')
+    setPhotos([])
+  }, [])
+
   useEffect(() => {
     const saved = sessionStorage.getItem('mod_token')
     if (saved) { setToken(saved); setAuthed(true) }
   }, [])
+
+  // Minuteur d'inactivité : (ré)armé à chaque geste tant qu'on est connecté.
+  useEffect(() => {
+    if (!authed) return
+    let timer: ReturnType<typeof setTimeout>
+    const arm = () => {
+      clearTimeout(timer)
+      timer = setTimeout(logout, IDLE_MS)
+    }
+    const events = ['pointerdown', 'pointermove', 'keydown', 'scroll', 'touchstart', 'wheel'] as const
+    events.forEach((e) => window.addEventListener(e, arm, { passive: true }))
+    arm() // départ du compteur dès l'entrée
+    return () => {
+      clearTimeout(timer)
+      events.forEach((e) => window.removeEventListener(e, arm))
+    }
+  }, [authed, logout])
 
   useEffect(() => {
     if (authed) loadPhotos()
