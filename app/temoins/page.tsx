@@ -52,7 +52,7 @@ const SECTIONS: Section[] = [
       { t: '14h30', bold: true, label: 'La Flamme de Sennecey vient récupérer le brasero', sub: 'Accueilli par Cyril.' },
       { t: '15h30', bold: true, label: 'Accueil des invités sur le parvis', sub: 'Jean-Christophe & Gaëlle et Mathieu & Elodie font circuler la caisse de vin. Enceinte Ugo sur le parvis. Victor : portraits libres.', music: 'Smooth Jazz House Music Mix', names: ['Jean-Christophe', 'Mathieu', 'Elodie'] },
       { t: '15h30', label: 'Le groupe jazz et Ibtisseme arrivent', sub: 'Micka & Fred les accueillent et les orientent.', names: ['Micka', 'Fred'] },
-      { t: '16h00', bold: true, label: 'Yannis au micro', sub: 'Il invite les invités à rejoindre la mare. Jean-Christophe et Gaëlle guident. Yannis garde le micro.', names: ['Jean-Christophe'] },
+      { t: '16h00', bold: true, label: 'Yannis au micro', sub: 'Il invite les invités à rejoindre la mare. Jean-Christophe et Gaëlle guident. Yannis garde le micro.', names: ['Jean-Christophe', 'Yannis'] },
       { t: '16h10', bold: true, label: 'Ugo coupe progressivement le son', sub: 'Thomas prend le relais côté mare. 5 minutes de silence.' },
     ],
   },
@@ -61,14 +61,14 @@ const SECTIONS: Section[] = [
     title: 'Cérémonie laïque · La Mare',
     dot: '#C77B5E',
     rows: [
-      { t: '16h15', bold: true, label: "Yannis remonte l'allée et prend place au pupitre", dur: '2 min', music: 'Theo Lawrence & The Hearts · Heaven to Me', names: ['Thomas'] },
-      { t: '16h17', label: "Yannis · discours d'introduction", dur: '1 min', sub: '« Mesdames et Messieurs, veuillez vous lever pour accueillir le marié, leurs témoins et leur famille »' },
+      { t: '16h15', bold: true, label: "Yannis remonte l'allée et prend place au pupitre", dur: '2 min', music: 'Theo Lawrence & The Hearts · Heaven to Me', names: ['Thomas', 'Yannis'] },
+      { t: '16h17', label: "Yannis · discours d'introduction", dur: '1 min', sub: '« Mesdames et Messieurs, veuillez vous lever pour accueillir le marié, leurs témoins et leur famille »', names: ['Yannis'] },
       { t: '16h20', bold: true, label: 'Procession', dur: '~3 min 10', sub: 'Départs espacés de 20 secondes, dans cet ordre :', music: 'Nina Simone · Here Comes the Sun', names: [...TEMOINS, 'Thomas'], proc: true },
-      { t: '16h24', label: 'Yannis : « Mesdames et Messieurs, veuillez maintenant accueillir la mariée »' },
+      { t: '16h24', label: 'Yannis : « Mesdames et Messieurs, veuillez maintenant accueillir la mariée »', names: ['Yannis'] },
       { t: '16h24', bold: true, label: 'Morgane entre, accompagnée par Allan', dur: '~1 min 45', sub: "15 secondes d'intro musicale, puis Morgane remonte l'allée au bras d'Allan.", music: 'Duomo / Sebastien Pecznik · With Or Without You', names: ['Thomas'] },
       { t: '16h26', label: "Morgane rejoint Cyril. Allan va s'asseoir. Moment ensemble (~2 min)." },
       { t: '16h28', label: 'Fin de With Or Without You. Tout le monde se rassoit.' },
-      { t: '16h28', bold: true, label: 'Yannis · introduction du couple', dur: '3 min' },
+      { t: '16h28', bold: true, label: 'Yannis · introduction du couple', dur: '3 min', names: ['Yannis'] },
       { t: '16h31', label: 'Passage du micro aux témoins de Morgane', dur: '1 min' },
       { t: '16h32', bold: true, label: 'Témoins de Morgane · discours 1', dur: '5 min max' },
       { t: '16h37', label: 'Passage du micro à Carole', dur: '1 min' },
@@ -83,16 +83,16 @@ const SECTIONS: Section[] = [
       { t: '17h02', bold: true, label: 'Témoins de Cyril · discours 2', dur: '5 min max' },
       { t: '17h07', label: 'Passage du micro aux témoins de Morgane', dur: '1 min' },
       { t: '17h08', bold: true, label: 'Témoins de Morgane · discours 4', dur: '5 min max' },
-      { t: '17h13', label: 'Yannis annonce les vœux', dur: '~1 min' },
+      { t: '17h13', label: 'Yannis annonce les vœux', dur: '~1 min', names: ['Yannis'] },
       { t: '17h14', bold: true, label: 'Vœux de Cyril', dur: '7 min' },
-      { t: '17h22', label: 'Yannis enchaîne vers les vœux de Morgane', dur: '~1 min' },
+      { t: '17h22', label: 'Yannis enchaîne vers les vœux de Morgane', dur: '~1 min', names: ['Yannis'] },
       { t: '17h23', bold: true, label: 'Vœux de Morgane', dur: '8 min max' },
       { t: '17h31', label: 'Transition vers le consentement', dur: '~1 min' },
-      { t: '17h32', bold: true, label: 'Yannis fait le geste : Gaëlle envoie les enfants avec les alliances', music: 'Ben Mazué · 10 ans de nous', names: ['Thomas'] },
+      { t: '17h32', bold: true, label: 'Yannis fait le geste : Gaëlle envoie les enfants avec les alliances', music: 'Ben Mazué · 10 ans de nous', names: ['Thomas', 'Yannis'] },
       { t: '17h37', bold: true, label: 'Les enfants arrivent · Charlotte présente les alliances' },
       { t: '17h41', bold: true, label: 'Consentement, échange des alliances & baiser' },
-      { t: '17h44', bold: true, label: "Yannis annonce la fin de la cérémonie et invite vers l'apéritif", sub: 'Thomas déclenche la machine à bulles.', music: 'Stevie Wonder · For Once In My Life', names: ['Thomas'] },
-      { t: '17h45', bold: true, label: 'Yannis passe le micro à Nelly · sortie des mariés sous les bulles', names: ['Nelly'] },
+      { t: '17h44', bold: true, label: "Yannis annonce la fin de la cérémonie et invite vers l'apéritif", sub: 'Thomas déclenche la machine à bulles.', music: 'Stevie Wonder · For Once In My Life', names: ['Thomas', 'Yannis'] },
+      { t: '17h45', bold: true, label: 'Yannis passe le micro à Nelly · sortie des mariés sous les bulles', names: ['Nelly', 'Yannis'] },
       { t: '~17h46', label: "Yoan, Alexandre, Anthony & Richard déplacent l'arche vers le Photo Booth et le panneau Welcome vers la salle. Laurine, Elodie et Nelly décrochent les fleurs de l'allée et les répartissent dans les soliflores sur les tonneaux (mange-debout).", names: ['Yoan', 'Alexandre', 'Anthony', 'Richard', 'Elodie', 'Nelly'] },
     ],
   },
@@ -219,6 +219,7 @@ export default function TemoinsPage() {
         <span aria-hidden="true" style={{ width: 1, background: 'var(--filet)', margin: '2px 2px', flexShrink: 0 }} />
         <Chip label="Thomas" active={sel === 'Thomas'} onClick={() => setSel(sel === 'Thomas' ? null : 'Thomas')} />
         <Chip label="DJ Stéphane" active={sel === 'Stéphane'} onClick={() => setSel(sel === 'Stéphane' ? null : 'Stéphane')} />
+        <Chip label="Yannis" active={sel === 'Yannis'} onClick={() => setSel(sel === 'Yannis' ? null : 'Yannis')} />
       </div>
 
       {/* PLACE AU DÎNER du témoin sélectionné (source : lib/plan.ts). */}
