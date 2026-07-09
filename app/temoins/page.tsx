@@ -50,7 +50,7 @@ const SECTIONS: Section[] = [
       { t: '13h00', bold: true, label: 'Victor arrive · séance photo avec Morgane', sub: "Accueilli par Elodie. Vers 14h30, au moment de l'essayage de la robe, Victor rejoint Cyril.", names: ['Elodie'] },
       { t: '14h00', bold: true, label: "DJ Stéphane arrive et s'installe", sub: 'Accueilli par Cyril. Test sono avant 16h00.' },
       { t: '14h30', bold: true, label: 'La Flamme de Sennecey vient récupérer le brasero', sub: 'Accueilli par Cyril.' },
-      { t: '15h30', bold: true, label: 'Accueil des invités sur le parvis', sub: 'Jean-Christophe & Gaëlle et Mathieu & Elodie font circuler la caisse de vin. Enceinte Ugo sur le parvis. Victor : portraits libres.', music: 'Smooth Jazz House Music Mix', names: ['Jean-Christophe', 'Mathieu', 'Elodie'] },
+      { t: '15h30', bold: true, label: 'Accueil des invités sur le parvis', sub: 'Jean-Christophe & Gaëlle invitent les convives à laisser des petits mots dans la caisse de vin comme souvenirs. Cyril & Morgane les liront lors de leur premier anniversaire de mariage. Enceinte Ugo sur le parvis. Victor : portraits libres.', music: 'Smooth Jazz House Music Mix', names: ['Jean-Christophe', 'Mathieu', 'Elodie'] },
       { t: '15h30', label: 'Le groupe jazz et Ibtisseme arrivent', sub: 'Micka & Fred les accueillent et les orientent.', names: ['Micka', 'Fred'] },
       { t: '16h00', bold: true, label: 'Yannis au micro', sub: 'Il invite les invités à rejoindre la mare. Jean-Christophe et Gaëlle guident. Yannis garde le micro.', names: ['Jean-Christophe', 'Yannis'] },
       { t: '16h10', bold: true, label: 'Ugo coupe progressivement le son', sub: 'Thomas prend le relais côté mare. 5 minutes de silence.' },
