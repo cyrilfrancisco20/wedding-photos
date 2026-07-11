@@ -112,16 +112,22 @@ export async function POST(req: NextRequest) {
       // convention côté galerie.
       const filename = `${base}.${fullExt}`
 
+      // On enveloppe le Buffer dans un Blob avant l'upload. storage-js n'emballe
+      // en multipart binaire que les Blob ; un Buffer nu part comme corps brut de
+      // fetch, et sur le runtime serverless (Vercel) ce corps est réinterprété en
+      // texte UTF-8 — chaque octet >0x7F devient U+FFFD et le JPEG est détruit
+      // (illisible partout : projection, galerie, téléchargement). Le Blob force
+      // le chemin binaire, identique en local et en prod.
       const { error: storageError } = await admin.storage
         .from('Photos')
-        .upload(filename, fullBody, { contentType: fullType })
+        .upload(filename, new Blob([new Uint8Array(fullBody)], { type: fullType }), { contentType: fullType })
 
       if (storageError) return { error: storageError.message }
 
       if (thumbBody) {
         await admin.storage
           .from('Photos')
-          .upload(`${base}.thumb.jpg`, thumbBody, { contentType: 'image/jpeg' })
+          .upload(`${base}.thumb.jpg`, new Blob([new Uint8Array(thumbBody)], { type: 'image/jpeg' }), { contentType: 'image/jpeg' })
       }
 
       const { data: urlData } = admin.storage.from('Photos').getPublicUrl(filename)
