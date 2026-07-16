@@ -1,5 +1,121 @@
 # Primer — wedding-photos (appli photos du mariage, 11/07/2026)
 
+## ÉTAT (16/07/2026, clôture) — cause de la perte des photos trouvée, corrigée, PAS DÉPLOYÉE
+
+**En attente : le GO PUSH de Cyril.** 3 commits sur `main` local, `origin/main` est resté à `15ca0aa`.
+
+### Le problème posé
+Cyril ne voyait que 50 photos dans la galerie alors que « beaucoup plus » ont été partagées le weekend du mariage.
+
+### Ce qui est établi (mesuré, pas supposé)
+- Galerie = **52 photos servies**, dont **50 en samedi** (l'onglet qu'il regardait). Base = 52 lignes, storage = 52 fichiers, cohérent.
+- **La base n'a JAMAIS contenu plus de 65 lignes.** Un seul bucket (`Photos`), zéro orphelin. Les photos manquantes ne sont pas « quelque part » : elles ne sont jamais arrivées. Seule copie = les téléphones des invités.
+
+### Cause racine : deux murs côté upload, invisibles pour l'invité
+1. **`checkRate` plafonnait à 30 uploads/h/IP** (`app/api/upload/route.ts`). Les 130 invités étaient derrière le WiFi du lieu = 1 seule IP. À 21h le 11/07, 35 photos passent (le `Map` est en mémoire, donc compteur par instance lambda), puis 429 « réessayez dans 1h » pour tout le monde. Uploads : 35/h → 1/h. Les rares survivants étaient en 4G. **Corrigé : plafond à 300** (une IP couvre une foule, pas une personne).
+2. **Le client envoyait tous les fichiers sélectionnés en une requête**, alors que l'API en refuse plus de 10. Un invité qui sélectionne 25 photos de sa pellicule recevait un 400 et n'en envoyait **aucune**, pas 10. **Corrigé : paquets de 10 en série**, un paquet qui casse n'emporte pas les suivants.
+
+L'egress Supabase (hypothèse de départ, primer du 30/06) **n'était PAS la cause**. Reste une inconnue à surveiller : Cyril n'a jamais dit s'il est passé en Pro, reset Free le 26/07.
+
+### Autres corrections de la session
+- `verify_deploy.mjs` **désamorcé** : il identifiait sa ligne de test par « la dimanche la plus récente » et la supprimait. Avec de vraies photos dimanche en base, il aurait détruit une photo d'invité. Il cible maintenant par `id` (empreinte avant/après). La vraie photo du 12/07 15h33 est intacte.
+- `/api/photos` : les lignes sans fichier storage étaient **filtrées en silence** (`signed.filter(p => p.url)`), d'où 61 approved → 52 affichées sans le moindre signal. Logue désormais.
+- **13 lignes fantômes purgées** (9 approved + 4 rejected) : photos de test du 30/06 + détruites par le bug UTF-8 d'avant le fix Blob du 11/07 14h30. **Aucune photo d'invité.** Sauvegarde JSON dans le scratchpad de session (éphémère).
+- `AGENTS.md` : conventions git du repo (commit direct sur `main`, `type(scope): sujet`, scopes = routes `app/`). Chargé seulement dans ce repo. Testé : `claude -p` répond juste depuis le repo, `NON` depuis `~/Claude`.
+- 4 branches mortes supprimées (local + origin), toutes contenues dans `main`, zéro perte.
+- **Home nettoyée** pour la relance : mention « grand écran » retirée (le mariage est passé) + lien `/couchages` retiré. Ne restent que l'action d'envoi et le lien galerie.
+
+### Preuves exécutées
+`tsc` clean, `next build` OK. Découpage testé dans le navigateur avec `fetch` stubbé : **25 fichiers → 3 requêtes (10/10/5)**, zéro doublon, zéro oubli, message « 25 photos envoyées pour Samedi ». Ancien code sur la même sélection, contre la vraie API locale : **HTTP 400, zéro photo**. Upload prod E2E : 200, JPEG valide en storage, nettoyage OK. Base restée à 52 lignes après tous les tests (rien pollué).
+
+### NEXT STEPS
+1. **GO PUSH de Cyril** → pousser les 3 commits, attendre Vercel, revérifier la prod (upload E2E + galerie) **avant** qu'il diffuse le lien.
+2. Ne PAS diffuser le lien aux 130 invités avant ça : sans le déploiement, ils retapent dans les deux mêmes murs et les photos sont reperdues.
+3. Cyril : vérifier le dashboard Supabase (egress, plan Pro) avant d'envoyer à 130 personnes.
+4. Liens vérifiés 200 : upload `https://wedding-photos-phi-beige.vercel.app/` (= ce qu'encode le QR), galerie `.../galerie`.
+
+### BLOCKERS
+- Aucune photo du 11/07 au soir n'est récupérable côté serveur. La seule voie = redemander aux invités d'uploader. D'où l'importance que le lien marche du premier coup.
+- Logs Vercel inaccessibles (CLI absent, aucune session locale). C'est ce qui aurait confirmé les 429 directement ; le faisceau (code + courbe horaire) est concordant mais reste une déduction.
+
+### DETTE
+Ce fichier fait ~44 Ko et a viré au journal, exactement ce que la règle 08 interdit (« l'état, pas l'historique »). À resserrer : garder cette section + le bloc « Contexte projet », archiver le reste. Non fait cette session, pas mon appel de supprimer son historique sans son go.
+
+---
+
+## ÉTAT (08/07/2026, clôture) — /plan-de-table : mobilier de service ajouté, DÉPLOYÉ EN PROD
+`main` = `origin/main` = `9c5e0bf` (poussé, Vercel auto-déploie). Build local `next build` OK avant push. Commit = uniquement `app/plan-de-table/page.tsx` (les fichiers mémoire primer/tasks non inclus dans le commit prod).
+
+Cyril a demandé d'ajouter le mobilier de service au canevas, dans le même langage visuel (fond ivoire, filet, font-display, échelle réelle `SCALE`). Ajouté en 3 passes successives :
+- **Fontaine de champagne + Desserts** : 2 tables ~160×80 cm (longueur verticale) le long du **mur droit**, dans la zone piste de danse, bord droit calé sur le mur, empilées et centrées dans la hauteur de la piste. Profondeur 80 cm **supposée** (buffet standard) — à confirmer par Cyril.
+- **Zone DJ** : carré 2,50×2,50 m dans l'**angle bas-gauche** de la piste (bord bas + mur gauche).
+- **Photobooth & accessoires** (2×1 m) + **tonneau livre d'or / urne** (cercle ~70 cm) : d'abord posés au milieu de la bande haute, puis **collés contre le mur des cuisines** (mur du haut) sur demande de Cyril, centrés dans la largeur. Label « Passage cuisines / WC » redescendu en bas de sa bande pour éviter le chevauchement.
+- **Point ouvert signalé à Cyril** : le photobooth recoupe le passage cuisines/WC marqué « aucun mobilier » — maintenant collé au mur pour libérer la circulation centrale, à valider côté prestataires. Le titre affiche toujours « 14 tables » (compte des tables assises ; le mobilier de service n'y entre pas — assumé).
+- Constantes ajoutées dans `page.tsx` : `SERVICE_*`, `DJ_*`, `PB_*`, `BARREL_*`, `TOP_GROUP_*`. Vérifié en dev (preview) : positions DOM lues (px), screenshots des 3 zones. Pas encore vérifié en HTML prod (déploiement en cours au moment de la clôture).
+
+## ÉTAT (07/07/2026, clôture) — /plan-de-table : refonte aménagement salle, DÉPLOYÉ EN PROD + vérifié
+`main` = `origin/main` = `adb9a01`. Poussé et vérifié en HTML prod (200, marqueurs 128 convives/14 tables/Gevrey-Chambertin/Santenay/Passage cuisines présents).
+
+**Chemin suivi** (chaque contrainte donnée par Cyril a changé la conclusion) : salle 8x25m + table des mariés 7,5m testée d'abord en colonne verticale (ne rentre pas), puis dans la longueur sur un côté (fonctionne), puis avec les vraies dimensions mobilier (2 Ø180/10p + 12 Ø150/8p, reculs 100cm/80cm) → tenait large avec 8,6m libres. Piste table CARRÉE (4x250x90cm) explorée et **abandonnée** : ne logeait que ~17-18 convives sur 25 (périmètre insuffisant), jamais implémentée. Cyril a fini par dessiner lui-même l'aménagement définitif au marqueur (photo whiteboard) : **passage cuisines/WC (3m, sans mobilier) en haut de la salle** (pas la table des mariés — confusion levée en session), table des mariés **linéaire 7,5x0,9m dans la longueur, mur de droite, recul 1m**, 13 tables rondes en colonne serpentée avec reculs 80cm vérifiés sans collision. Cyril a ensuite demandé un rééquilibrage de l'espacement des trios 1/2/3 et 11/12/13, 2 noms de crus supplémentaires (Gevrey-Chambertin, Santenay), puis fourni la répartition exacte des effectifs par table.
+
+**Liste nominative réelle** obtenue via `~/Desktop/Sans titre.pages` (128 convives, table par table) — le fichier `.pages` n'est pas lisible tel quel par les outils (binaire zip/iwa) ; extrait en l'ouvrant dans Pages.app via `osascript` puis export PDF, lu page par page. Les labels "Table 2/3/4..." de ce fichier sont un index interne à la liste, **sans rapport** avec les positions physiques 1-13 du plan — seul le nom de cru fait le lien, tout recoupé et vérifié cohérent (128 = 25 tête + 103 tables rondes).
+
+**Implémenté** (commit `adb9a01`) :
+- `lib/plan.ts` : `ROUND_TABLES` (13 tables, nom + diamètre + liste nominative des 128 convives), source unique. `HEAD_TOP`/`HEAD_BOTTOM`/`HEAD_END`/`headPlace()` inchangés (déjà corrects, revérifiés contre la liste réelle).
+- `app/plan-de-table/page.tsx` : refonte complète du canevas à une échelle réelle unique (`SCALE` px/cm, ~0,933), table des mariés construite nativement verticale (fini le hack `rotate(90deg)` + texte à -52°), passage cuisines/WC affiché, 13 tables rondes positionnées aux coordonnées calculées (2 Ø180 rendues visuellement plus grandes que les 11 Ø150 — fidèle à la réalité, pas une taille schématique arbitraire comme avant). Titre au survol de chaque pastille = prénom du convive (nouveau, gratuit via l'attribut `title` déjà en place).
+- **Menus spéciaux réinitialisés à classique partout** : l'ancienne liste (enceinte/vege/vegan, associée aux 11 anciennes tables) ne se reporte pas de façon fiable sur ce nouveau découpage à 13 tables → **à reconfirmer avec Cyril table par table avant impression des menus**.
+- Preuves : `tsc --noEmit` clean, `next build` OK (page statique), lint = 1 erreur préexistante (`setInvite` dans un effect, déjà présente avant mes changements, vérifié par `git stash`), vérifié en dev (scroll, tables Ø150/Ø180, table des mariés, tooltip nom), déployé + vérifié en HTML prod.
+
+## Next steps
+- **Menus spéciaux à refaire** avec Cyril (qui est enceinte/végé/vegan parmi les 128, table par table) — actuellement tout classique.
+- Écart total : 128 convives confirmé par Cyril (l'hypothèse 129 d'une session précédente était fausse, resolu).
+
+## ÉTAT (06/07/2026, clôture) — TOUT DÉPLOYÉ EN PROD, vérifié
+`main` = `origin/main` = `769eec8`. Session longue, tout poussé et confirmé en HTML prod à chaque étape (jamais de push sans vérif derrière).
+
+**`/couchages` (nouvelle page, déployée)** : dispatching des chambres pour 51 dormeurs, 3 bâtiments (château, annexe, gîte).
+- Vraie vue aérienne IGN (`public/couchages/aerien2.jpg`, licence ouverte) avec détourage des 3 bâtiments, positions calées sur les coordonnées GPS données par Cyril — **corrigées 2 fois** : l'annexe était l'aile ouest/sud, en fait c'est la partie HAUTE (nord) du complexe ; le gîte n'était pas le bon bâtiment au premier essai.
+- **Chemin d'accès au gîte** : d'abord une forme devinée à la main (« dog-leg » approximatif), puis **recalé au pixel près** à partir d'un PDF où Cyril a tracé la vraie clôture — converti par detection de couleur + Douglas-Peucker + transform GPS, vérifié par superposition (coïncide exactement). Ne plus deviner un tracé réel à l'oeil : demander/attendre la source si elle existe.
+- Recherche par prénom, surlignage + scroll, photos de façade (château/annexe/gîte), badges enfant/nuit spécifique. Source unique : `lib/couchages.ts`.
+- Dernier échange de chambres : JC+Julie.L ↔ Mathieu.D+Diane (JC+Julie.L → Georgina château, Mathieu+Diane → Annexe 4 lits). Audrey/Nathan/Benoit.P/Chloé passés en "sam. seult".
+- Caveat non résolu : **Olivia à 5 personnes suppose 1 baldaquin + 3 simples**, jamais confirmé par le domaine.
+
+**`/plan-de-table` (déployé)** : table des mariés pivotée 90° horaire, calée à droite (aménagement réel confirmé par Cyril), centrée sur les 3 rangées de tables rondes. Tables rondes en pixels fixes (jamais bougées). Couleur menu enceinte changée (bleu ardoise `#6E8AA3`). Permutations Clos de Vougeot ↔ Mercurey, Pommard ↔ Vosne-Romanée.
+
+**`/temoins` (déployé)** : discours de Morgane porté à 4 (nouveau discours ajouté avant Carole, les 3 autres renumérotés), Cyril reste à 2 témoins + Carole. Timing recalculé : le discours ajouté (+6 min) est absorbé en raccourcissant le Set n°2 du groupe de jazz (60→54 min) — tout depuis la fin du jazz (19h34) est identique à l'original, **photos à 20h00 pile**, vérifié par calcul indépendant. Procession réduite à 8 groupes.
+
+**Bug transverse corrigé sur les 3 pages (couchages, plan-de-table, temoins)** : le sceau M&C du footer n'était pas centré (`Seal` est en `display:flex`, un bloc — `text-align:center` du footer n'a aucune prise dessus). Fix : passer le footer en `flex flex-col items-center`. **Corrigé 3 fois séparément** parce que je ne l'ai pas propagé aux autres pages dès la 1ère découverte — voir leçon loggée.
+
+## Blockers
+Aucun technique. Reste ouvert côté Cyril : confirmer la capacité réelle d'Olivia (5 places) auprès du domaine.
+
+## Next steps
+- Si Cyril valide Olivia à 5, rien à faire. Sinon, revoir le dispatching château (`lib/couchages.ts`).
+- Vider la base Supabase avant le 11/07 (rappel des sessions précédentes, toujours valable).
+- Repasser en Free après le mariage (Pro pris pour l'egress).
+
+## ÉTAT (02/07/2026) — /temoins DÉPLOYÉE EN PROD + /plan-de-table COMMIT LOCAL NON POUSSÉ
+`/temoins` : poussée le 02/07 (commit `15e5e6e`), vérifiée en prod (200 + contenu). URL : https://wedding-photos-phi-beige.vercel.app/temoins
+`/plan-de-table` : DÉPLOYÉE EN PROD le 02/07 (commits `de2d073` + `2a0fa08`), vérifiée (marqueur « aménagement réel » présent dans le HTML prod). URL : https://wedding-photos-phi-beige.vercel.app/plan-de-table
+Plan de table refait à la charte depuis le plan Pages de Cyril : table des mariés Romanée-Conti (25) en haut, 11 tables rondes (noms = crus de Bourgogne, PAS « climats », corrigé par Cyril), pastilles menus (Pommard 1 enceinte, Aloxe-Corton 1 enceinte, Saint-Aubin 3 végé + 1 vegan, comptes VALIDÉS par Cyril), 129 convives. Lien croisé /temoins ↔ /plan-de-table, noindex.
+Place au dîner cliquable (02/07, déployé + vérifié prod) : le placement nominatif vit dans **`lib/plan.ts`** (source unique : HEAD_TOP/HEAD_END/HEAD_BOTTOM + `headPlace()` + `planNameFor()` qui mappe les diminutifs Micka→Michael et Fred→Frédéric, mapping SUPPOSÉ, jamais infirmé par Cyril). Sur /temoins, sélectionner un prénom affiche « Votre place au dîner : Romanée-Conti, entre X et Y » + lien `/plan-de-table?invite=<prénom>` qui marque la chaise (pastille terra cerclée + prénom gras) et la centre par scrollIntoView. Les 12 témoins sont tous à la table des mariés. Table des mariés agrandie de 20 % (left 21.8 %, width 62.4 %, minHeight 101).
+Table des mariés (corrections Cyril, toutes déployées + vérifiées prod) : 12 chaises par côté + 1 bout de table à droite (25), **placement nominatif** affiché (constantes `HEAD_TOP`/`HEAD_END`/`HEAD_BOTTOM` dans la page ; tour de table donné en partant d'en haut à gauche, `HEAD_BOTTOM` stocké de gauche à droite donc INVERSÉ par rapport au tour). Sous-titre = « crus de Bourgogne » (pas climats).
+**CONTRAINTE ACTÉE par Cyril : la disposition des tables = l'aménagement réel de la salle, diffusé aux prestataires. NE JAMAIS réagencer les tables pour des raisons de design.** Implémentation : canevas absolu (positions x en %, y en px, `TABLES` dans la page), minWidth 760 + scroll horizontal sur mobile (pas de réempilement), rangées 1 et 3 alignées en colonnes, rangée 2 décalée.
+- **Nouvelle route `/temoins`** (`app/temoins/page.tsx` + `layout.tsx` noindex) : déroulé minute par minute du jour J pour les témoins, à partir de la version « quasi finalisée » fournie par Cyril le 01/07 (PAS de l'ancien `~/Desktop/Mariage/logo.html`, périmé : ordre de procession changé, rituel du vin supprimé, horaires décalés, fin à 6h00).
+- Charte Variante A réutilisée telle quelle : scope `.gal-a`, hero faire-part agrumes `/accueil/hero.png` en `mq-zoom`, `.reveal` au scroll, `.glass` sticky, Seal en pied. Zéro modif de `globals.css`.
+- **Filtre par prénom** : barre sticky de chips (12 témoins), met en surbrillance les lignes + groupes de procession où le témoin intervient, estompe le reste. Tags dérivés STRICTEMENT du texte de Cyril.
+- Non listée : aucun lien depuis `/`, `robots noindex`. Confidentialité faible (URL devinable) : jugé suffisant, à re-trancher si Cyril veut un mot de passe.
+- Ambiguïté signalée à Cyril : ligne « G1 — 16h20 +10s — Carole & Cyril +20s » (le +10s ne colle pas avec les +20s), rendu = G1 à 16h20 puis +20s par groupe. Date confirmée 11/07 (faire-part + `lib/wedding.ts`) ; logo.html disait 12/07, faux.
+- Preuves : `tsc --noEmit` clean, `next build` OK (`/temoins` statique), lint = 1 warning `<img>` (même baseline que l'accueil), vérifié mobile + desktop en dev (hero, timeline, procession, filtre Nelly, footer).
+
+## ÉTAT À LA CLÔTURE (01/07/2026, session suivante) — hero réutilisé + filigrane retiré, QR livret remplacé, rotation impression EN ATTENTE Cyril
+`main` = `origin/main` = `b96fbc9` (après `205402e`, `5006723`). Tout poussé et vérifié en HTML prod.
+
+- **Hero réutilisé** sur `/galerie` (fond de la section cover, même `mq-zoom`) et `/projection` (écran de veille uniquement, pas pendant le diaporama actif). Overlay d'assombrissement unifié sur les 3 pages (accueil/galerie/projection) pour un niveau de contraste cohérent.
+- **Filigrane ajouté PUIS RETIRÉ PARTOUT** : Cyril a d'abord demandé le sceau M&C + prénoms en petit coin sur accueil/galerie/projection (pour matcher la projection), puis est revenu dessus et a demandé de tout retirer + supprimer la légende « Le fil de la journée... » sur la galerie — le hero (faire-part imprimé) affiche déjà nom+date, la redondance n'apportait rien. Composant partagé `app/components/Seal.tsx` créé pendant l'aller-retour : **le garder**, toujours utilisé par la signature persistante de `/projection` pendant le diaporama actif (haut-gauche + bas-de-cadre), ne pas le supprimer même si plus utilisé sur accueil/galerie.
+- **Livret imprimé** (hors repo, `~/Desktop/Livret_MC_A4_recto_verso.pages`) : faux QR remplacé par le vrai (image flottante indépendante 4,5×4,5cm, générée avec `qrcode.react` déjà présent dans le projet, superposée exactement sur l'ancien placeholder). Sauvegardé et vérifié visuellement. **Cyril doit scanner physiquement avant impression** (pas d'outil de décodage QR disponible pour vérifier moi-même). Fichier temporaire `~/Desktop/qr_wedding_photos.png` laissé sur le Bureau — à supprimer ou garder, Cyril doit trancher.
+- **EN ATTENTE (Cyril)** : rotation 180° des 2 pages du livret pour l'impression recto-verso pliée en livret. Pas fait par moi — voir leçon dans `tasks-for-lessons.md` (échec de sélection d'objet en GUI, près de perdre le contenu d'une page, rattrapé par Cmd+Z). Instructions manuelles données à Cyril. Recommandé en premier : vérifier le réglage retournement recto-verso (bord court vs bord long) dans la boîte de dialogue d'impression avant de toucher au contenu — c'est souvent la vraie cause d'un livret mal imprimé, pas le contenu du document.
+
 ## ÉTAT À LA CLÔTURE (01/07/2026) — session SÉCURITÉ + red-team, tout déployé en prod + vérifié
 `main` = `origin/main` = `2fbe1a0`. Trois commits poussés + auto-déployés Vercel (37e8886 gate, 6bb0981 durcissements+filet modérateur, 2fbe1a0 projection Variante A sombre + primer).
 
