@@ -21,7 +21,8 @@ Cyril ne voyait que 50 photos dans la galerie alors que « beaucoup plus » ont 
 - Galerie = **52 photos servies**, dont **50 en samedi** (l'onglet qu'il regardait). Base = 52 lignes, storage = 52 fichiers, cohérent.
 - **La base n'a JAMAIS contenu plus de 65 lignes.** Un seul bucket (`Photos`), zéro orphelin. Les photos manquantes ne sont pas « quelque part » : elles ne sont jamais arrivées. Seule copie = les téléphones des invités.
 
-### Cause racine : deux murs côté upload, invisibles pour l'invité
+### Cause racine : QUATRE murs côté upload, tous invisibles pour l'invité
+(le 3e = le 413 Vercel décrit tout en haut, le plus coûteux ; le 4e = le bug UTF-8 du 11/07 14h30, qui a tué tout le vendredi soir)
 1. **`checkRate` plafonnait à 30 uploads/h/IP** (`app/api/upload/route.ts`). Les 130 invités étaient derrière le WiFi du lieu = 1 seule IP. À 21h le 11/07, 35 photos passent (le `Map` est en mémoire, donc compteur par instance lambda), puis 429 « réessayez dans 1h » pour tout le monde. Uploads : 35/h → 1/h. Les rares survivants étaient en 4G. **Corrigé : plafond à 300** (une IP couvre une foule, pas une personne).
 2. **Le client envoyait tous les fichiers sélectionnés en une requête**, alors que l'API en refuse plus de 10. Un invité qui sélectionne 25 photos de sa pellicule recevait un 400 et n'en envoyait **aucune**, pas 10. **Corrigé : paquets de 10 en série**, un paquet qui casse n'emporte pas les suivants.
 
@@ -40,8 +41,8 @@ L'egress Supabase (hypothèse de départ, primer du 30/06) **n'était PAS la cau
 
 ### NEXT STEPS
 1. **FAIT** : déployé et vérifié en prod le 16/07.
-2. Ne PAS diffuser le lien aux 130 invités avant ça : sans le déploiement, ils retapent dans les deux mêmes murs et les photos sont reperdues.
-3. Cyril : vérifier le dashboard Supabase (egress, plan Pro) avant d'envoyer à 130 personnes.
+2. **Le lien peut être diffusé aux 130 invités.** Les 4 murs sont tombés, prouvé sur la vraie page déployée.
+3. Cyril : vérifier le dashboard Supabase (egress, plan Pro) avant d'envoyer à 130 personnes. Seule inconnue restante.
 4. Liens vérifiés 200 : upload `https://wedding-photos-phi-beige.vercel.app/` (= ce qu'encode le QR), galerie `.../galerie`.
 
 ### BLOCKERS
