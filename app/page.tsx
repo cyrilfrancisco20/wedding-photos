@@ -32,37 +32,100 @@ export default function GuestPage() {
   const [state, setState] = useState<'idle' | 'uploading' | 'done' | 'error'>('idle')
   const [message, setMessage] = useState('')
 
-  // L'API refuse plus de 10 fichiers par requête. L'input est `multiple` : un invité
-  // ouvre sa pellicule et en sélectionne 30 d'un coup, ce qui est le geste normal.
-  // Tout envoyer en une requête faisait donc échouer les 30, pas passer les 10
-  // premières. On découpe en paquets de 10 et on les envoie en série.
-  const BATCH_SIZE = 10
+  // Vercel refuse tout corps de requête au-delà de ~4,5 Mo, AVANT même que la
+  // fonction ne démarre : le 413 est renvoyé par la plateforme, la route n'en sait
+  // rien (le garde « max 15 Mo » de l'API n'a donc jamais pu s'exécuter). Mesuré
+  // en prod le 16/07 : 4,40 Mo passe, 4,93 Mo est rejeté.
+  //
+  // Une photo d'iPhone pèse 2 à 4 Mo. Donc UNE passait, mais DEUX d'un coup (5-8 Mo)
+  // partaient en 413 et étaient perdues toutes les deux, sans message exploitable.
+  // C'est le geste le plus courant après un mariage, et c'est ce qui a coûté le plus
+  // de photos le 11/07. On découpe donc par TAILLE, jamais par nombre.
+  const MAX_REQUEST_BYTES = 3.5 * 1024 * 1024 // marge sous les 4,5 Mo (multipart + champs)
+
+  // Une photo qui, seule, dépasse la limite ne passera jamais telle quelle. On la
+  // réduit dans le navigateur à 3000px : c'est EXACTEMENT ce que sharp fait ensuite
+  // côté serveur (3000px q88), donc la photo finale est identique — on déplace juste
+  // le redimensionnement en amont pour que la requête tienne. Effet de bord assumé :
+  // le canvas efface l'EXIF, donc `taken_at` sera nul pour ces photos et la galerie
+  // les triera sur l'heure d'envoi. Une photo mal triée reste récupérable ; une photo
+  // en 413 est perdue pour toujours.
+  async function reduire(file: File): Promise<File> {
+    try {
+      const bitmap = await createImageBitmap(file)
+      const ratio = Math.min(3000 / bitmap.width, 3000 / bitmap.height, 1)
+      const canvas = document.createElement('canvas')
+      canvas.width = Math.round(bitmap.width * ratio)
+      canvas.height = Math.round(bitmap.height * ratio)
+      canvas.getContext('2d')!.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
+      bitmap.close()
+      const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, 'image/jpeg', 0.88))
+      if (!blob || blob.size >= file.size) return file
+      return new File([blob], file.name.replace(/\.[^.]+$/, '') + '.jpg', { type: 'image/jpeg' })
+    } catch {
+      // Format que le navigateur ne sait pas décoder : on envoie l'original et on
+      // laisse le serveur tenter. Pas pire que l'ancien comportement.
+      return file
+    }
+  }
 
   async function handleFiles(files: FileList | null) {
     if (!files || !files.length || !activeDay) return
     setState('uploading')
 
     const all = Array.from(files)
+
+    // Réduction des seules photos qui ne passeraient pas : les autres gardent leur
+    // EXIF (donc leur tri chronologique) intact.
+    const prets: File[] = []
+    for (const [i, f] of all.entries()) {
+      if (f.size > MAX_REQUEST_BYTES) {
+        setMessage(`Préparation ${i + 1} sur ${all.length}…`)
+        prets.push(await reduire(f))
+      } else prets.push(f)
+    }
+
+    // Paquets par taille cumulée. Une photo encore trop grosse après réduction part
+    // seule : au moins elle a sa chance.
     const batches: File[][] = []
-    for (let i = 0; i < all.length; i += BATCH_SIZE) batches.push(all.slice(i, i + BATCH_SIZE))
+    let courant: File[] = []
+    let poids = 0
+    for (const f of prets) {
+      if (courant.length && poids + f.size > MAX_REQUEST_BYTES) {
+        batches.push(courant)
+        courant = []
+        poids = 0
+      }
+      courant.push(f)
+      poids += f.size
+    }
+    if (courant.length) batches.push(courant)
 
     let sent = 0
     const failures: string[] = []
 
-    for (const [i, batch] of batches.entries()) {
-      if (batches.length > 1) setMessage(`Envoi ${sent + 1}-${sent + batch.length} sur ${all.length}…`)
+    for (const batch of batches) {
+      if (all.length > 1) setMessage(`Envoi ${sent + 1}-${sent + batch.length} sur ${all.length}…`)
       const form = new FormData()
       form.append('moment', activeDay)
       batch.forEach((f) => form.append('files', f))
       try {
         const res = await fetch('/api/upload', { method: 'POST', body: form })
-        const data = await res.json()
-        if (!res.ok) throw new Error(data.error)
-        sent += (data.count as number) ?? batch.length
+        // Un 413 de Vercel n'est pas du JSON : le parser aveuglément faisait
+        // remonter « Unexpected token » à l'invité au lieu d'une vraie raison.
+        const txt = await res.text()
+        let data: { error?: string; count?: number } = {}
+        try { data = JSON.parse(txt) } catch { data = {} }
+        if (!res.ok) {
+          throw new Error(
+            data.error ?? (res.status === 413 ? 'Photo trop lourde pour être envoyée' : `Erreur ${res.status}`)
+          )
+        }
+        sent += data.count ?? batch.length
       } catch (e: unknown) {
         // Un paquet qui casse ne doit pas emporter les suivants : une photo perdue
         // est perdue pour de bon, on tente tous les paquets et on rend les comptes.
-        failures.push(e instanceof Error ? e.message : `paquet ${i + 1}`)
+        failures.push(e instanceof Error ? e.message : 'Erreur inconnue')
       }
     }
 

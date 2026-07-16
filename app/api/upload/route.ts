@@ -76,8 +76,13 @@ export async function POST(req: NextRequest) {
 
   const results: Result[] = await Promise.all(
     files.map(async (file): Promise<Result> => {
-      if (file.size > 15 * 1024 * 1024) {
-        return { error: `${file.name} trop volumineux (max 15 Mo)` }
+      // Ce garde annonçait « max 15 Mo » : il n'a jamais pu s'exécuter au-delà de
+      // ~4,5 Mo, puisque Vercel rejette le corps de requête (413
+      // FUNCTION_PAYLOAD_TOO_LARGE) avant que la fonction ne démarre. Mesuré en prod
+      // le 16/07 : 4,40 Mo passe, 4,93 Mo non. Le client réduit désormais en amont et
+      // découpe par taille ; ce plafond n'est plus qu'un filet cohérent avec le réel.
+      if (file.size > 4.4 * 1024 * 1024) {
+        return { error: `${file.name} trop volumineux (max 4,4 Mo par photo)` }
       }
       if (!ALLOWED_TYPES.includes(file.type)) {
         return { error: `${file.name} : format non accepté (JPEG, PNG, WEBP uniquement)` }
