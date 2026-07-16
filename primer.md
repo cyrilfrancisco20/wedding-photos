@@ -1,8 +1,18 @@
 # Primer — wedding-photos (appli photos du mariage, 11/07/2026)
 
-## ÉTAT (16/07/2026, clôture) — cause de la perte des photos trouvée, corrigée, PAS DÉPLOYÉE
+## ÉTAT (16/07/2026, clôture) — 4 pannes trouvées, corrigées, DÉPLOYÉES ET VÉRIFIÉES EN PROD
 
-**En attente : le GO PUSH de Cyril.** 3 commits sur `main` local, `origin/main` est resté à `15ca0aa`.
+`main` = `origin/main` = `2e99c87`. Déploiement Vercel confirmé (marqueurs présents dans le bundle servi). Upload E2E rejoué sur la vraie page déployée : **5 photos (4×3 Mo + 1×6 Mo) → « 5 photos envoyées », 5/5 intègres (plein + vignette JPEG lisibles), base rendue à 52**. Galerie prod : 52 photos, 0 URL cassée. `/`, `/galerie`, `/moderateur` → 200.
+
+**LE LIEN EST PRÊT À ÊTRE DIFFUSÉ AUX INVITÉS.**
+
+### La 4e panne, trouvée en vérifiant le déploiement (la plus grosse)
+**Vercel rejette tout corps de requête > ~4,5 Mo** (413 `FUNCTION_PAYLOAD_TOO_LARGE`), AVANT que la fonction ne démarre. Mesuré en prod : **4,40 Mo passe, 4,93 Mo non**. Une photo d'iPhone pèse 2-4 Mo : UNE passait, **DEUX d'un coup partaient en 413**, perdues toutes les deux, avec un message illisible (le 413 n'est pas du JSON, `res.json()` renvoyait « Unexpected token » à l'invité). C'est le geste le plus courant après un mariage. Le découpage par 10 du commit précédent n'y changeait rien : c'est la TAILLE qui compte, pas le nombre.
+
+Corrigé : découpage par taille cumulée (3,5 Mo/requête), réduction navigateur à 3000px pour les photos qui dépassent seules (identique à ce que sharp faisait ensuite côté serveur, donc photo finale inchangée ; l'EXIF saute pour celles-là, tri sur l'heure d'envoi assumé — une photo mal triée reste récupérable, une photo en 413 est perdue), parse défensif des réponses non-JSON. Garde serveur « max 15 Mo » aligné sur le réel (4,4 Mo) : il n'avait jamais pu s'exécuter.
+
+### LEÇON DE MÉTHODE (à retenir)
+J'ai conclu 24 fois « pas encore déployé » avec une sonde cassée : le bundle minifié contient `Pr\xe9paration`, pas `Préparation`, donc mon grep sur la chaîne accentuée ne pouvait rien trouver, même en local. Le code était en ligne depuis le début. **Valider la sonde sur un cas connu-positif avant de croire un négatif.**
 
 ### Le problème posé
 Cyril ne voyait que 50 photos dans la galerie alors que « beaucoup plus » ont été partagées le weekend du mariage.
@@ -29,7 +39,7 @@ L'egress Supabase (hypothèse de départ, primer du 30/06) **n'était PAS la cau
 `tsc` clean, `next build` OK. Découpage testé dans le navigateur avec `fetch` stubbé : **25 fichiers → 3 requêtes (10/10/5)**, zéro doublon, zéro oubli, message « 25 photos envoyées pour Samedi ». Ancien code sur la même sélection, contre la vraie API locale : **HTTP 400, zéro photo**. Upload prod E2E : 200, JPEG valide en storage, nettoyage OK. Base restée à 52 lignes après tous les tests (rien pollué).
 
 ### NEXT STEPS
-1. **GO PUSH de Cyril** → pousser les 3 commits, attendre Vercel, revérifier la prod (upload E2E + galerie) **avant** qu'il diffuse le lien.
+1. **FAIT** : déployé et vérifié en prod le 16/07.
 2. Ne PAS diffuser le lien aux 130 invités avant ça : sans le déploiement, ils retapent dans les deux mêmes murs et les photos sont reperdues.
 3. Cyril : vérifier le dashboard Supabase (egress, plan Pro) avant d'envoyer à 130 personnes.
 4. Liens vérifiés 200 : upload `https://wedding-photos-phi-beige.vercel.app/` (= ce qu'encode le QR), galerie `.../galerie`.
