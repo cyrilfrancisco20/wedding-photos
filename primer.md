@@ -26,7 +26,9 @@ Cyril ne voyait que 50 photos dans la galerie alors que « beaucoup plus » ont 
 1. **`checkRate` plafonnait à 30 uploads/h/IP** (`app/api/upload/route.ts`). Les 130 invités étaient derrière le WiFi du lieu = 1 seule IP. À 21h le 11/07, 35 photos passent (le `Map` est en mémoire, donc compteur par instance lambda), puis 429 « réessayez dans 1h » pour tout le monde. Uploads : 35/h → 1/h. Les rares survivants étaient en 4G. **Corrigé : plafond à 300** (une IP couvre une foule, pas une personne).
 2. **Le client envoyait tous les fichiers sélectionnés en une requête**, alors que l'API en refuse plus de 10. Un invité qui sélectionne 25 photos de sa pellicule recevait un 400 et n'en envoyait **aucune**, pas 10. **Corrigé : paquets de 10 en série**, un paquet qui casse n'emporte pas les suivants.
 
-L'egress Supabase (hypothèse de départ, primer du 30/06) **n'était PAS la cause**. Reste une inconnue à surveiller : Cyril n'a jamais dit s'il est passé en Pro, reset Free le 26/07.
+L'egress Supabase (hypothèse de départ, primer du 30/06) **n'était PAS la cause. Question CLOSE, vérifiée sur le dashboard le 16/07** : org `Cyril-Fnsc` est sur le **Pro Plan**, cycle **30 juin - 30 juillet** (et non « reset Free le 26/07 » comme l'écrivaient les primers précédents : cette date était fausse). Egress **8,05 / 250 Go (3 %)**, cached 4,86 / 250 Go, storage 0,014 / 100 Go, overage 0. « You have not exceeded your Pro Plan quota in this billing cycle. »
+
+Conséquence : Cyril était **déjà en Pro pendant le mariage** (cycle ouvert le 30/06), avec 250 Go. Il en a consommé 8 sur tout le mois. L'egress n'a donc jamais rien bloqué le 11/07, à aucun moment. Le diagnostic 413 + 429 est la totalité de l'explication. **Plus aucune inconnue sur l'infra : le lien peut partir aux 130 invités sans risque de quota.**
 
 ### Autres corrections de la session
 - `verify_deploy.mjs` **désamorcé** : il identifiait sa ligne de test par « la dimanche la plus récente » et la supprimait. Avec de vraies photos dimanche en base, il aurait détruit une photo d'invité. Il cible maintenant par `id` (empreinte avant/après). La vraie photo du 12/07 15h33 est intacte.
@@ -42,7 +44,7 @@ L'egress Supabase (hypothèse de départ, primer du 30/06) **n'était PAS la cau
 ### NEXT STEPS
 1. **FAIT** : déployé et vérifié en prod le 16/07.
 2. **Le lien peut être diffusé aux 130 invités.** Les 4 murs sont tombés, prouvé sur la vraie page déployée.
-3. Cyril : vérifier le dashboard Supabase (egress, plan Pro) avant d'envoyer à 130 personnes. Seule inconnue restante.
+3. **FAIT** : dashboard vérifié le 16/07. Pro Plan, egress 8,05/250 Go (3 %). Aucun risque de quota, plus rien à vérifier côté infra.
 4. Liens vérifiés 200 : upload `https://wedding-photos-phi-beige.vercel.app/` (= ce qu'encode le QR), galerie `.../galerie`.
 
 ### BLOCKERS
