@@ -48,5 +48,17 @@ export async function GET(req: NextRequest) {
     })
   )
 
+  // Une ligne en base dont le fichier a disparu du storage est filtrée ci-dessous.
+  // Sans ce log elle s'évanouit en silence : la galerie affiche moins de photos que
+  // la base n'en compte, sans rien signaler. C'est exactement ce qui a masqué 9
+  // photos (fichiers détruits par le bug UTF-8 d'avant le 11/07 puis supprimés).
+  const broken = signed.filter((p) => !p.url)
+  if (broken.length) {
+    console.error(
+      `[photos] ${broken.length} ligne(s) "${status}" sans fichier dans le storage, non affichée(s) :`,
+      broken.map((p) => p.filename).join(', ')
+    )
+  }
+
   return NextResponse.json(signed.filter((p) => p.url))
 }

@@ -23,6 +23,23 @@ export const maxDuration = 60 // la modération vision peut prendre quelques sec
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif']
 const rateMap = new Map<string, { count: number; reset: number }>()
 
+// Plafond par IP et par heure.
+//
+// Il était à 30, et ça a coûté les photos du mariage. Le 11/07 à 21h, les invités
+// sont tous derrière le WiFi du lieu : une seule IP publique pour 130 personnes.
+// 35 photos sont passées (le Map vit en mémoire, donc le compteur est par instance
+// lambda : ~2 instances chaudes × 30), puis tout le monde a pris un 429 « réessayez
+// dans 1h » et a abandonné. Les uploads sont tombés de 35/h à 1/h — les seuls qui
+// passaient encore étaient en 4G, avec leur IP à eux.
+//
+// Une IP n'identifie pas une personne : derrière un NAT (WiFi d'un lieu, CGNAT d'un
+// opérateur mobile) elle en couvre des dizaines. Le plafond doit donc absorber une
+// foule entière, pas un individu. Le vrai filet anti-abus est ailleurs et il tient :
+// modération IA sur chaque photo, revue du modérateur, 10 fichiers max par requête,
+// types de fichiers validés. Un faux 429 coûte une photo de mariage, définitivement ;
+// une photo de trop coûte un clic au modérateur.
+const RATE_LIMIT_PER_IP_PER_HOUR = 300
+
 function checkRate(ip: string): boolean {
   const now = Date.now()
   const entry = rateMap.get(ip)
@@ -30,7 +47,7 @@ function checkRate(ip: string): boolean {
     rateMap.set(ip, { count: 1, reset: now + 60 * 60 * 1000 })
     return true
   }
-  if (entry.count >= 30) return false
+  if (entry.count >= RATE_LIMIT_PER_IP_PER_HOUR) return false
   entry.count++
   return true
 }

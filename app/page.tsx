@@ -32,23 +32,48 @@ export default function GuestPage() {
   const [state, setState] = useState<'idle' | 'uploading' | 'done' | 'error'>('idle')
   const [message, setMessage] = useState('')
 
+  // L'API refuse plus de 10 fichiers par requête. L'input est `multiple` : un invité
+  // ouvre sa pellicule et en sélectionne 30 d'un coup, ce qui est le geste normal.
+  // Tout envoyer en une requête faisait donc échouer les 30, pas passer les 10
+  // premières. On découpe en paquets de 10 et on les envoie en série.
+  const BATCH_SIZE = 10
+
   async function handleFiles(files: FileList | null) {
     if (!files || !files.length || !activeDay) return
     setState('uploading')
-    const form = new FormData()
-    form.append('moment', activeDay)
-    Array.from(files).forEach((f) => form.append('files', f))
-    try {
-      const res = await fetch('/api/upload', { method: 'POST', body: form })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error)
-      setState('done')
-      const n = data.count as number
-      setMessage(`${n} photo${n > 1 ? 's' : ''} envoyée${n > 1 ? 's' : ''} pour ${DAY_LABELS[activeDay]}`)
-    } catch (e: unknown) {
-      setState('error')
-      setMessage(e instanceof Error ? e.message : "Erreur lors de l'envoi")
+
+    const all = Array.from(files)
+    const batches: File[][] = []
+    for (let i = 0; i < all.length; i += BATCH_SIZE) batches.push(all.slice(i, i + BATCH_SIZE))
+
+    let sent = 0
+    const failures: string[] = []
+
+    for (const [i, batch] of batches.entries()) {
+      if (batches.length > 1) setMessage(`Envoi ${sent + 1}-${sent + batch.length} sur ${all.length}…`)
+      const form = new FormData()
+      form.append('moment', activeDay)
+      batch.forEach((f) => form.append('files', f))
+      try {
+        const res = await fetch('/api/upload', { method: 'POST', body: form })
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error)
+        sent += (data.count as number) ?? batch.length
+      } catch (e: unknown) {
+        // Un paquet qui casse ne doit pas emporter les suivants : une photo perdue
+        // est perdue pour de bon, on tente tous les paquets et on rend les comptes.
+        failures.push(e instanceof Error ? e.message : `paquet ${i + 1}`)
+      }
     }
+
+    if (sent === 0) {
+      setState('error')
+      setMessage(failures[0] ?? "Erreur lors de l'envoi")
+      return
+    }
+    setState('done')
+    const base = `${sent} photo${sent > 1 ? 's' : ''} envoyée${sent > 1 ? 's' : ''} pour ${DAY_LABELS[activeDay]}`
+    setMessage(failures.length ? `${base}. ${all.length - sent} n'ont pas pu être envoyées, réessayez.` : base)
   }
 
   return (
