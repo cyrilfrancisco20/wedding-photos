@@ -1,5 +1,26 @@
 # Primer — wedding-photos (appli photos du mariage, 11/07/2026)
 
+## ⚠️ INCIDENT (16/07/2026) — les 52 fichiers pleins supprimés, 20 photos perdues
+
+**Ce qui s'est passé.** J'ai donné à Cyril le lien du bucket storage en décrivant son contenu ainsi : « **Chaque photo y est en double** : le plein (3000px, pour l'impression) et sa vignette `.thumb.jpg` ». Ce ne sont pas des doublons, ce sont deux dérivés volontaires. Cyril a lu « doublons », est allé dans le dashboard, et a supprimé la moitié lourde. **C'est ma formulation qui a causé la suppression.** J'ai en plus livré un lien à pouvoir destructif sans un mot sur le fait que le storage Supabase n'est couvert par AUCUNE sauvegarde (les backups Pro ne couvrent que Postgres).
+
+**Bilan définitif.**
+- **0 / 52 fichiers pleins** (3000px, qualité tirage). Tous supprimés, irrécupérables.
+- **32 photos survivent en vignette 600px** (écran seulement, inexploitable en tirage).
+- **20 photos perdues totalement**, toutes du samedi, dont 18 entre 21h21 et 22h35 (le cœur de la soirée).
+- Les 52 lignes en base sont intactes (métadonnées : jour, EXIF, statut).
+
+**Sauvegarde locale** : `~/Desktop/SAUVETAGE-photos-mariage/` — 33 vignettes + `base-photos.json`. 1,6 Mo. Seule copie hors Supabase. **Ne pas supprimer.**
+
+**Récupération : épuisée.** Backups Supabase ne couvrent pas le storage. Cache Chrome (3 profils) : zéro trace. Disque : rien. Cyril consultait la galerie depuis son téléphone. **Les vraies originales sont sur les téléphones des invités, en meilleure qualité que ce que le site a jamais stocké** (le serveur ré-encodait à 3000px). La relance auprès des invités reste la seule voie, et elle répare aussi cet incident.
+
+**Correctif déployé** (`f1f615c`) : `/api/photos` fait un repli croisé (plein sinon vignette). La galerie était tombée à **zéro photo** alors que 32 vignettes existaient : elle ne servait que les lignes ayant un plein. Elle en sert de nouveau 32, marquées `degraded`, bouton « Télécharger (600px) » pour ne pas laisser croire à un fichier imprimable. Vérifié en prod : 32 photos, 0 image cassée, 600x450.
+
+**LEÇONS (les miennes).**
+1. **Ne jamais qualifier de « doublon » un dérivé volontaire.** Le mot a déclenché la suppression.
+2. **Un lien à pouvoir destructif se livre avec son coût.** J'ai donné l'accès au bucket sans dire « rien n'y est sauvegardé, une suppression est définitive ».
+3. **« Base intacte » ≠ « données intactes ».** J'ai annoncé « INTACTE » 5 fois après mes nettoyages en ne vérifiant QUE le nombre de lignes, jamais le storage. La moitié du système n'était pas contrôlée. Un invariant se vérifie sur toutes ses faces.
+
 ## ÉTAT (16/07/2026, clôture) — 4 pannes trouvées, corrigées, DÉPLOYÉES ET VÉRIFIÉES EN PROD
 
 `main` = `origin/main` = `2e99c87`. Déploiement Vercel confirmé (marqueurs présents dans le bundle servi). Upload E2E rejoué sur la vraie page déployée : **5 photos (4×3 Mo + 1×6 Mo) → « 5 photos envoyées », 5/5 intègres (plein + vignette JPEG lisibles), base rendue à 52**. Galerie prod : 52 photos, 0 URL cassée. `/`, `/galerie`, `/moderateur` → 200.
