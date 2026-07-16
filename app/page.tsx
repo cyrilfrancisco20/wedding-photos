@@ -98,7 +98,7 @@ export default function GuestPage() {
         <p className="uppercase" style={{ fontSize: '0.6rem', letterSpacing: '0.34em', color: C.terra, fontWeight: 600, margin: 0 }}>{COUPLE}</p>
         <h1 className="font-display" style={{ fontWeight: 500, fontSize: 'clamp(2.1rem, 6vw, 2.8rem)', lineHeight: 1.05, margin: '.3em 0 0' }}>Partagez vos photos</h1>
         <p className="font-display italic" style={{ fontSize: '1.05rem', color: '#5d4736', maxWidth: '28ch', margin: '.7em auto 0' }}>
-          Choisissez le jour, prenez ou ajoutez vos photos. Elles s'affichent sur le grand écran et rejoignent notre galerie.
+          Choisissez le jour, prenez ou ajoutez vos photos.
         </p>
 
         {state === 'done' ? (
@@ -166,7 +166,6 @@ export default function GuestPage() {
 
         <div className="flex flex-col items-center" style={{ gap: 10, marginTop: 40 }}>
           <a href="/galerie" className="font-display italic" style={{ color: C.terra, fontSize: '1.05rem' }}>Voir la galerie du mariage →</a>
-          <a href="/couchages" className="font-display italic" style={{ color: C.terra, fontSize: '1.05rem' }}>Vous dormez sur place ? Voir votre chambre →</a>
         </div>
 
         {APP_URL && (
