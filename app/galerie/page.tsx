@@ -5,7 +5,9 @@ import Image from 'next/image'
 import { DAY_ORDER, DAY_LABELS, UNSORTED, ALL_BUCKET_LABELS, type Day, type Bucket } from '@/lib/schedule'
 import { demoPhotos } from '@/lib/demoPhotos'
 
-type Photo = { id: string; url: string; thumbUrl?: string | null; moment: Bucket | null; taken_at: string | null; created_at: string }
+// `degraded` : le fichier pleine résolution manque, la photo n'existe plus qu'en
+// vignette 600px et l'API sert celle-ci à sa place plutôt que de la faire disparaître.
+type Photo = { id: string; url: string; thumbUrl?: string | null; degraded?: boolean; moment: Bucket | null; taken_at: string | null; created_at: string }
 type Tab = Day | typeof UNSORTED
 type Lightbox = { list: Photo[]; i: number }
 
@@ -288,7 +290,9 @@ function Viewer({ lightbox, onClose, onMove }: { lightbox: Lightbox; onClose: ()
           style={{ padding: '7px 16px', border: '1px solid rgba(247,242,233,0.4)', color: 'var(--or)', fontSize: '0.82rem' }}
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><path d="M7 10l5 5 5-5" /><path d="M12 15V3" /></svg>
-          Télécharger
+          {/* Le fichier pleine résolution de cette photo n'existe plus : on ne sert
+              que la vignette 600px. Le dire, plutôt que laisser croire à un tirage. */}
+          {photo.degraded ? 'Télécharger (600px)' : 'Télécharger'}
         </a>
         {lightbox.list.length > 1 && <p className="mt-2" style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', letterSpacing: '0.15em' }}>{lightbox.i + 1} / {lightbox.list.length}</p>}
       </div>
